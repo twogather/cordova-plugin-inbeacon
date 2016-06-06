@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="nl.inbeacon.inBeacon" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <name>inBeacon Plugin</name>
+    <description>inBeacon cordova plugin supporting inBeacon SDK</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,inbeacon,ibeacon,beacon,bluetooth,le</keywords>
+    <repo>https://github.com/inbeacon/cordova-plugin-inbeacon.git</repo>
+
+    <!-- Third party libraries -->
+    
+    <!-- Plugin source code: Core -->
+    <js-module name="inBeacon" src="www/inbeacon.js">
+        <clobbers target="cordova.plugins"/>
+    </js-module>
+
+    <platform name="ios">
+        
+        <config-file parent="/*" target="config.xml">
+            <feature name="inBeacon">
+                <param name="ios-package" value="CDVInBeacon"/>
+            </feature>
+        </config-file>
+        
+        <config-file target="*-Info.plist" parent="NSLocationAlwaysUsageDescription">
+            <string>This app would like to scan for iBeacons even when in the background.</string>
+        </config-file>
+        <config-file target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription">
+            <string>This app would like to scan for iBeacons while it is in use.</string>
+        </config-file>
+         
+
+        <header-file src="src/ios/CDVInBeacon.h"/>
+        <source-file src="src/ios/CDVInBeacon.m"/>
+
+        <header-file src="src/ios/AppDelegate+CDVInBeacon.h"/>
+        <source-file src="src/ios/AppDelegate+CDVInBeacon.m"/>
+
+        <framework src="CoreBluetooth.framework" />
+        <framework src="CoreLocation.framework" />
+        <framework src="libs/ios/inBeaconSdk.framework" custom="true" />
+
+    </platform>
+
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="inBeacon" >
+                <param name="android-package" value="com.unarin.cordova.beacon.inBeacon"/>
+            </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+			<uses-permission android:name="android.permission.BLUETOOTH" />
+            <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<receiver android:name="org.altbeacon.beacon.startup.StartupBroadcastReceiver" >
+				<intent-filter>
+					<action android:name="android.intent.action.BOOT_COMPLETED" />
+					<action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+					<action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+				</intent-filter>
+			</receiver>
+            <service android:enabled="true"
+                     android:exported="true"
+                     android:isolatedProcess="false"
+                     android:label="iBeacon"
+                     android:name="org.altbeacon.beacon.service.BeaconService">
+            </service>
+            <service android:enabled="true"
+                     android:name="org.altbeacon.beacon.BeaconIntentProcessor">
+                <meta-data android:name="background" android:value="true" />
+                <intent-filter android:priority="1" >
+                    <action android:name="com.unarin.cordova.beacon.IBeaconPlugin.DID_RANGING" />
+                    <action android:name="com.unarin.cordova.beacon.IBeaconPlugin.DID_MONITORING" />
+                </intent-filter>
+            </service>
+        </config-file>
+		
+        <source-file src="src/android/inBeacon.java" target-dir="src/com/unarin/cordova/beacon" />
+        <source-file src="src/android/IBeaconServiceNotifier.java" target-dir="src/com/unarin/cordova/beacon" />
+        <source-file src="src/android/IinBeaconCommand.java" target-dir="src/com/unarin/cordova/beacon" />
+        <source-file src="src/android/PausableThreadPoolExecutor.java" target-dir="src/com/unarin/cordova/beacon" />
+
+		<source-file src="libs/android/altbeacon.jar" target-dir="libs" framework="true" />
+    </platform>
+
+</plugin>

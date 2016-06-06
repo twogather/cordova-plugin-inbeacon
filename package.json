@@ -1,0 +1,33 @@
+{
+  "name": "nl.inbeacon.inBeacon",
+  "version": "1.0.0",
+  "description": "inBeacon plugin ",
+  "cordova": {
+    "id": "nl.inbeacon.inBeacon",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inbeacon/cordova-plugin-inbeacon.git"
+  },
+  "keywords": [
+    "cordova",
+    "inbeacon",
+    "ibeacon",
+    "beacon",
+    "bluetooth",
+    "le",
+    "ecosystem:cordova",
+    "cordova-ios",
+    "cordova-android"
+  ],
+  "author": "inBeacon <ronald@inbeacon.nl>",
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://github.com/inbeacon/cordova-plugin-inbeacon/issues"
+  },
+  "homepage": "https://github.com/inbeacon/cordova-plugin-inbeacon"
+}
