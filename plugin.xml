@@ -17,7 +17,7 @@
     <platform name="ios">
         
         <config-file parent="/*" target="config.xml">
-            <feature name="inBeacon">
+            <feature name="InBeacon">
                 <param name="ios-package" value="CDVInBeacon"/>
             </feature>
         </config-file>
@@ -44,7 +44,7 @@
 
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="inBeacon" >
+            <feature name="InBeacon" >
                 <param name="android-package" value="com.unarin.cordova.beacon.inBeacon"/>
             </feature>
         </config-file>

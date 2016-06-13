@@ -22,54 +22,68 @@
 var exec = require('cordova/exec');
 
 /**
- * This represents the mobile device, and provides properties for inspecting the model, version, UUID of the
- * phone, etc.
  * @constructor
  */
 function InBeacon() {
-    this.available = false;
-    this.platform = null;
-    this.version = null;
-    this.uuid = null;
-    this.cordova = null;
-    this.model = null;
-    this.manufacturer = null;
-    this.isVirtual = null;
-    this.serial = null;
-
-    var me = this;
-
-    channel.onCordovaReady.subscribe(function() {
-        me.getInfo(function(info) {
-            //ignoring info.cordova returning from native, we should use value from cordova.version defined in cordova.js
-            //TODO: CB-5105 native implementations should not return info.cordova
-            var buildLabel = cordova.version;
-            me.available = true;
-            me.platform = info.platform;
-            me.version = info.version;
-            me.uuid = info.uuid;
-            me.cordova = buildLabel;
-            me.model = info.model;
-            me.isVirtual = info.isVirtual;
-            me.manufacturer = info.manufacturer || 'unknown';
-            me.serial = info.serial || 'unknown';
-            channel.onCordovaInfoReady.fire();
-        },function(e) {
-            me.available = false;
-            utils.alert("[ERROR] Error initializing Cordova: " + e);
-        });
-    });
 }
 
 /**
- * Get device info
- *
- * @param {Function} successCallback The function to call when the heading data is available
- * @param {Function} errorCallback The function to call when there is an error getting the heading data. (OPTIONAL)
+ * Loglevel 0  = no logging
+ * @type {number}
  */
-Device.prototype.getInfo = function(successCallback, errorCallback) {
-    argscheck.checkArgs('fF', 'Device.getInfo', arguments);
-    exec(successCallback, errorCallback, "Device", "getDeviceInfo", []);
+InBeacon.prototype.LOG_NONE     = 0;
+/**
+ * Loglevel 1  = errors only
+ * @type {number}
+ */
+InBeacon.prototype.LOG_ERROR       = 1;
+/**
+ * Loglevel 2  = important logs and errors
+ * @type {number}
+ */
+InBeacon.prototype.LOG_LOG    = 2;
+/**
+ * Loglevel 3  = more verbose
+ * @type {number}
+ */
+InBeacon.prototype.LOG_INFO      = 3;
+/**
+ * Loglevel 4  = even more verbose
+ * @type {number}
+ */
+InBeacon.prototype.LOG_DEBUG     = 4;
+
+
+/**
+ * To initialize connection with inBeacon API using ClientId and Secret
+ *
+ * @param {object} kwargs Keyword arguments is an object contain key/value pairs of clientId and secret
+ * @param {Function} successCallback The function to call when succeeded
+ * @param {Function} errorCallback The function to call when there is an error (OPTIONAL)
+ */
+InBeacon.prototype.initialize = function(kwargs, successCallback, errorCallback) {
+    exec(successCallback, errorCallback || null, "InBeacon", "initialize", [kwargs]);
 };
+
+/**
+ * To get the newest data from inBeacon API
+ *
+ * @param {Function} successCallback The function to call when succeeded
+ * @param {Function} errorCallback The function to call when there is an error (OPTIONAL)
+ */
+InBeacon.prototype.refresh = function(successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "refresh", []);
+}
+
+/**
+ * To change the logging level, using one of the predefined constants
+ *
+ * @param logLevel
+ * @param {Function} successCallback The function to call when succeeded
+ * @param {Function} errorCallback The function to call when there is an error (OPTIONAL)
+ */
+InBeacon.prototype.setLogLevel = function(logLevel, successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "setLogLevel", [logLevel]);
+}
 
 module.exports = new InBeacon();

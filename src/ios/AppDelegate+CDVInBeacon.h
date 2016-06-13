@@ -19,10 +19,9 @@
 
 #import "AppDelegate.h"
 
-@interface AppDelegate (CDVLocationManager)
-
-@property UIBackgroundTaskIdentifier backgroundTaskIdentifier;
+@interface AppDelegate (CDVInBeacon)
 
 - (BOOL) xxx_application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions;
+- (void) xxx_application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification; 
 
 @end
