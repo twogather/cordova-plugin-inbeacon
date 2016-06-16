@@ -17,6 +17,7 @@
  under the License.
  */
 
+#import <inBeaconSDK/inBeaconSDK.h>
 #import "AppDelegate+CDVInBeacon.h"
 #import <objc/runtime.h>
 
@@ -65,9 +66,6 @@
     BOOL launchedWithoutOptions = launchOptions == nil;
    
     [[inBeaconSdk getInstance] setLogLevel:1];  // 0=none 1=error 2=log 3=info 4=debug
-
-    // optional: get notifications for app-events
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onNotification:) name:@"inb:AppEvent" object:nil];
     
     return [self xxx_application:application didFinishLaunchingWithOptions:launchOptions];
 }

@@ -19,39 +19,87 @@
  *
 */
 
-var exec = require('cordova/exec');
+var cordova = require('cordova'),
+    exec    = require('cordova/exec');
 
 /**
  * @constructor
  */
 function InBeacon() {
+
+    //create new document events
+    this.channels = {
+        enterregion: cordova.addDocumentEventHandler('inbeacon.enterregion'),
+        exitregion : cordova.addDocumentEventHandler('inbeacon.exitregion'),
+        enterlocation : cordova.addDocumentEventHandler('inbeacon.enterlocation'),
+        exitlocation : cordova.addDocumentEventHandler('inbeacon.exitlocation'),
+        regionsupdate : cordova.addDocumentEventHandler('inbeacon.regionsupdate'),
+        enterproximity : cordova.addDocumentEventHandler('inbeacon.enterproximity'),
+        exitproximity : cordova.addDocumentEventHandler('inbeacon.exitproximity'),
+        proximity : cordova.addDocumentEventHandler('inbeacon.proximity'),
+        appevent : cordova.addDocumentEventHandler('inbeacon.appevent'),
+        appaction : cordova.addDocumentEventHandler('inbeacon.appaction')
+    };
+
+    for (var key in this.channels) {
+        this.channels[key].onHasSubscribersChange = InBeacon.onHasSubscribersChange;
+    }
 }
+
+function handlers(){
+    var sum = 0;
+    for(var key in inBeacon.channels){
+        sum += inBeacon.channels[key].numHandlers;
+    }
+    return sum;
+}
+
+/**
+ * Event handlers for when callbacks get registered for InBeacon.
+ * Keep track of how many handlers we have so we can start and stop the native battery listener
+ * appropriately (and hopefully save on battery life!).
+ */
+InBeacon.onHasSubscribersChange = function() {
+    // If we just registered the first handler, make sure native listener is started.
+    if (this.numHandlers === 1 && handlers() === 1) {
+        exec(battery._status, battery._error, "InBeacon", "startListener", []);
+    } else if (handlers() === 0) {
+        exec(null, null, "InBeacon", "stopListener", []);
+    }
+};
+
+InBeacon.prototype._listener = function (data) {
+    if (data && data.event) {
+        cordova.fireDocumentEvent('inbeacon.'+data.event, data);
+    }
+};
+
 
 /**
  * Loglevel 0  = no logging
  * @type {number}
  */
-InBeacon.prototype.LOG_NONE     = 0;
+InBeacon.LOG_NONE     = 0;
 /**
  * Loglevel 1  = errors only
  * @type {number}
  */
-InBeacon.prototype.LOG_ERROR       = 1;
+InBeacon.LOG_ERROR    = 1;
 /**
  * Loglevel 2  = important logs and errors
  * @type {number}
  */
-InBeacon.prototype.LOG_LOG    = 2;
+InBeacon.LOG_LOG      = 2;
 /**
  * Loglevel 3  = more verbose
  * @type {number}
  */
-InBeacon.prototype.LOG_INFO      = 3;
+InBeacon.LOG_INFO     = 3;
 /**
  * Loglevel 4  = even more verbose
  * @type {number}
  */
-InBeacon.prototype.LOG_DEBUG     = 4;
+InBeacon.LOG_DEBUG    = 4;
 
 
 /**
@@ -86,4 +134,16 @@ InBeacon.prototype.setLogLevel = function(logLevel, successCallback, errorCallba
     exec(successCallback, errorCallback || null, "InBeacon", "setLogLevel", [logLevel]);
 }
 
-module.exports = new InBeacon();
+InBeacon.prototype.attachUser = function(userInfo, successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "attachUser", [userInfo]);
+}
+
+InBeacon.prototype.detachUser = function(successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "detachUser", []);
+}
+
+var inBeacon = new InBeacon();
+
+module.exports.inBeacon = inBeacon;
+module.exports.InBeacon = InBeacon;
+

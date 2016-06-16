@@ -19,11 +19,10 @@
 
 #import "CDVInBeacon.h"
 #import <inBeaconSdk/inBeaconSdk.h>
-#import <AdSupport/ASIdentifierManager.h>
 
-@implementation CDVInBeacon {
+@implementation CDVInBeacon
 
-}
+@synthesize listenerCallbackId;
 
 # pragma mark CDVPlugin
 
@@ -91,6 +90,68 @@
 	
 }
 
+- (void) onNotification:(NSNotification *)notification {
+	NSDictionary* event;
+	if([notification.name isEqual: @"inb:region"]) {
+		NSString* eventType = [[notification.userInfo objectForKey:@"io"] isEqual:@"i" ] ? @"enterregion" : @"exitregion";
+		
+		event = [NSDictionary dictionaryWithObjectsAndKeys:
+				 eventType, @"event",
+				 notification.userInfo, @"data",
+				 nil] ;
+	} else if([notification.name  isEqual: @"inb:location"]){
+		
+	}
+	
+	
+	[self notifyListener:event];
+}
+
+- (void) startListener:(CDVInvokedUrlCommand *)command {
+	self.listenerCallbackId = command.callbackId;
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onNotification:) name:@"inb:region" object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onNotification:) name:@"inb:location" object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onNotification:) name:@"inb:proximity" object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onNotification:) name:@"inb:locationsUpdate" object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onNotification:) name:@"inb:AppEvent" object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onNotification:) name:@"inb:AppAction" object:nil];
+}
+
+- (void) stopListener:(CDVInvokedUrlCommand *)command {
+	if(self.listenerCallbackId){
+		[self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand * command) {
+			
+			CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+			[result setKeepCallbackAsBool:NO];
+			
+			return result;
+			
+		} :command :true :self.listenerCallbackId];
+	}
+	
+	self.listenerCallbackId = nil;
+	
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"inb:region" object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"inb:location" object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"inb:proximity" object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"inb:locationsUpdate" object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"inb:AppEvent" object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"inb:AppAction" object:nil];
+}
+
+- (void) notifyListener:(NSDictionary *)event{
+	if(self.listenerCallbackId){
+		[self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand* command){
+			CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
+			
+			[result setKeepCallbackAsBool:YES];
+		
+			return result;
+		} :nil :true :self.listenerCallbackId];
+	}
+}
 
 
 #pragma mark Utilities
@@ -139,7 +200,6 @@
     NSLog(@"Uncaught exception: %@", exception.description);
     NSLog(@"Stack trace: %@", [exception callStackSymbols]);
 
-    // When calling without a request (LocationManagerDelegate callbacks) from the client side the command can be null.
     if (command == nil) {
         return;
     }
@@ -150,6 +210,10 @@
 
 - (BOOL) isBelowIos7 {
     return [[[UIDevice currentDevice] systemVersion] floatValue] < 7.0;
+}
+
+- (void) dealloc {
+	[self stopListener:nil];
 }
 
 @end

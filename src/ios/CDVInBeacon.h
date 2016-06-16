@@ -25,10 +25,11 @@ typedef CDVPluginResult* (^CDVPluginCommandHandler)(CDVInvokedUrlCommand*);
 
 
 @interface CDVInBeacon : CDVPlugin {
-
+	NSString* listenerCallbackId;
 }
 
 @property (retain) inBeaconSdk *inBeacon;
+@property (strong) NSString* listenerCallbackId;
 
 - (void)initialize:(CDVInvokedUrlCommand*)command;
 - (void)refresh:(CDVInvokedUrlCommand*)command;
@@ -42,6 +43,13 @@ typedef CDVPluginResult* (^CDVPluginCommandHandler)(CDVInvokedUrlCommand*);
 
 - (void)getInRegions:(CDVInvokedUrlCommand*)command;
 - (void)getBeaconState:(CDVInvokedUrlCommand*)command;
+
+- (void)startListener:(CDVInvokedUrlCommand*)command;
+- (void)stopListener:(CDVInvokedUrlCommand*)command;
+- (void)onNotification:(NSNotification*)notification;
+- (void)notifyListener:(NSDictionary*)event;
+
+-(void)dealloc;
 
 @end
 
