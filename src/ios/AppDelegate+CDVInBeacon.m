@@ -65,8 +65,16 @@
 
     BOOL launchedWithoutOptions = launchOptions == nil;
    
-    [[inBeaconSdk getInstance] setLogLevel:1];  // 0=none 1=error 2=log 3=info 4=debug
+    [[inBeaconSdk getInstance] setLogLevel:3];  // 0=none 1=error 2=log 3=info 4=debug
     
+    NSString *clientId = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"inBeacon API clientId"];
+    NSString *secret = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"inBeacon API secret"];
+    
+    if (clientId != nil && secret != nil) {
+        inBeaconSdk *inBeacon = [inBeaconSdk inbeaconWithClientID: clientId andClientSecret: secret];
+        [inBeacon refresh];
+    }
+
     return [self xxx_application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
