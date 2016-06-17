@@ -19,57 +19,131 @@
  *
 */
 
-var exec = require('cordova/exec');
+var cordova = require('cordova'),
+    exec    = require('cordova/exec');
 
 /**
- * This represents the mobile device, and provides properties for inspecting the model, version, UUID of the
- * phone, etc.
  * @constructor
  */
 function InBeacon() {
-    this.available = false;
-    this.platform = null;
-    this.version = null;
-    this.uuid = null;
-    this.cordova = null;
-    this.model = null;
-    this.manufacturer = null;
-    this.isVirtual = null;
-    this.serial = null;
 
-    var me = this;
+    //create new document events
+    this.channels = {
+        enterregion: cordova.addDocumentEventHandler('inbeacon.enterregion'),
+        exitregion : cordova.addDocumentEventHandler('inbeacon.exitregion'),
+        enterlocation : cordova.addDocumentEventHandler('inbeacon.enterlocation'),
+        exitlocation : cordova.addDocumentEventHandler('inbeacon.exitlocation'),
+        regionsupdate : cordova.addDocumentEventHandler('inbeacon.regionsupdate'),
+        enterproximity : cordova.addDocumentEventHandler('inbeacon.enterproximity'),
+        exitproximity : cordova.addDocumentEventHandler('inbeacon.exitproximity'),
+        proximity : cordova.addDocumentEventHandler('inbeacon.proximity'),
+        appevent : cordova.addDocumentEventHandler('inbeacon.appevent'),
+        appaction : cordova.addDocumentEventHandler('inbeacon.appaction')
+    };
 
-    channel.onCordovaReady.subscribe(function() {
-        me.getInfo(function(info) {
-            //ignoring info.cordova returning from native, we should use value from cordova.version defined in cordova.js
-            //TODO: CB-5105 native implementations should not return info.cordova
-            var buildLabel = cordova.version;
-            me.available = true;
-            me.platform = info.platform;
-            me.version = info.version;
-            me.uuid = info.uuid;
-            me.cordova = buildLabel;
-            me.model = info.model;
-            me.isVirtual = info.isVirtual;
-            me.manufacturer = info.manufacturer || 'unknown';
-            me.serial = info.serial || 'unknown';
-            channel.onCordovaInfoReady.fire();
-        },function(e) {
-            me.available = false;
-            utils.alert("[ERROR] Error initializing Cordova: " + e);
-        });
-    });
+    for (var key in this.channels) {
+        this.channels[key].onHasSubscribersChange = InBeacon.onHasSubscribersChange;
+    }
+}
+
+function handlers(){
+    var sum = 0;
+    for(var key in inBeacon.channels){
+        sum += inBeacon.channels[key].numHandlers;
+    }
+    return sum;
 }
 
 /**
- * Get device info
- *
- * @param {Function} successCallback The function to call when the heading data is available
- * @param {Function} errorCallback The function to call when there is an error getting the heading data. (OPTIONAL)
+ * Event handlers for when callbacks get registered for InBeacon.
+ * Keep track of how many handlers we have so we can start and stop the native battery listener
+ * appropriately (and hopefully save on battery life!).
  */
-Device.prototype.getInfo = function(successCallback, errorCallback) {
-    argscheck.checkArgs('fF', 'Device.getInfo', arguments);
-    exec(successCallback, errorCallback, "Device", "getDeviceInfo", []);
+InBeacon.onHasSubscribersChange = function() {
+    // If we just registered the first handler, make sure native listener is started.
+    if (this.numHandlers === 1 && handlers() === 1) {
+        exec(battery._status, battery._error, "InBeacon", "startListener", []);
+    } else if (handlers() === 0) {
+        exec(null, null, "InBeacon", "stopListener", []);
+    }
 };
 
-module.exports = new InBeacon();
+InBeacon.prototype._listener = function (data) {
+    if (data && data.event) {
+        cordova.fireDocumentEvent('inbeacon.'+data.event, data);
+    }
+};
+
+
+/**
+ * Loglevel 0  = no logging
+ * @type {number}
+ */
+InBeacon.LOG_NONE     = 0;
+/**
+ * Loglevel 1  = errors only
+ * @type {number}
+ */
+InBeacon.LOG_ERROR    = 1;
+/**
+ * Loglevel 2  = important logs and errors
+ * @type {number}
+ */
+InBeacon.LOG_LOG      = 2;
+/**
+ * Loglevel 3  = more verbose
+ * @type {number}
+ */
+InBeacon.LOG_INFO     = 3;
+/**
+ * Loglevel 4  = even more verbose
+ * @type {number}
+ */
+InBeacon.LOG_DEBUG    = 4;
+
+
+/**
+ * To initialize connection with inBeacon API using ClientId and Secret
+ *
+ * @param {object} kwargs Keyword arguments is an object contain key/value pairs of clientId and secret
+ * @param {Function} successCallback The function to call when succeeded
+ * @param {Function} errorCallback The function to call when there is an error (OPTIONAL)
+ */
+InBeacon.prototype.initialize = function(kwargs, successCallback, errorCallback) {
+    exec(successCallback, errorCallback || null, "InBeacon", "initialize", [kwargs]);
+};
+
+/**
+ * To get the newest data from inBeacon API
+ *
+ * @param {Function} successCallback The function to call when succeeded
+ * @param {Function} errorCallback The function to call when there is an error (OPTIONAL)
+ */
+InBeacon.prototype.refresh = function(successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "refresh", []);
+}
+
+/**
+ * To change the logging level, using one of the predefined constants
+ *
+ * @param logLevel
+ * @param {Function} successCallback The function to call when succeeded
+ * @param {Function} errorCallback The function to call when there is an error (OPTIONAL)
+ */
+InBeacon.prototype.setLogLevel = function(logLevel, successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "setLogLevel", [logLevel]);
+}
+
+InBeacon.prototype.attachUser = function(userInfo, successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "attachUser", [userInfo]);
+}
+
+InBeacon.prototype.detachUser = function(successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "detachUser", []);
+}
+
+var inBeacon = new InBeacon();
+
+module.exports.inBeacon = inBeacon;
+module.exports.InBeacon = InBeacon;
+

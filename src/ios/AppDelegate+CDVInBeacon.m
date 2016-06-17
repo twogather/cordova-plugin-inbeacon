@@ -17,10 +17,11 @@
  under the License.
  */
 
-#import "AppDelegate+CDVLocationManager.h"
+#import <inBeaconSDK/inBeaconSDK.h>
+#import "AppDelegate+CDVInBeacon.h"
 #import <objc/runtime.h>
 
-@implementation AppDelegate (CDVLocationManager)
+@implementation AppDelegate (CDVInBeacon)
 
 
 + (void)load {
@@ -42,6 +43,20 @@
         } else {
             method_exchangeImplementations(originalMethod, swizzledMethod);
         }
+ 
+        SEL selectorForNotification = @selector(application:didReceiveLocalNotification:);
+        SEL swizzledSelectorForNotification = @selector(xxx_application:didReceiveLocalNotification:);
+        
+        Method methodForNotification = class_getInstanceMethod(class, selectorForNotification);
+        Method swizzledMethodForNotification = class_getInstanceMethod(class, swizzledSelectorForNotification);
+        
+        BOOL didAddMethodForNotification = class_addMethod(class, selectorForNotification, method_getImplementation(swizzledMethodForNotification), method_getTypeEncoding(swizzledMethodForNotification));
+        
+        if (didAddMethodForNotification) {
+            class_replaceMethod(class, swizzledSelectorForNotification, method_getImplementation(methodForNotification), method_getTypeEncoding(methodForNotification));
+        } else {
+            method_exchangeImplementations(methodForNotification, swizzledMethodForNotification);
+        }
         
     });
 }
@@ -49,35 +64,15 @@
 - (BOOL) xxx_application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
     BOOL launchedWithoutOptions = launchOptions == nil;
-    
-    if (!launchedWithoutOptions) {
-        [self requestMoreBackgroundExecutionTime];
-    }
+   
+    [[inBeaconSdk getInstance] setLogLevel:1];  // 0=none 1=error 2=log 3=info 4=debug
     
     return [self xxx_application:application didFinishLaunchingWithOptions:launchOptions];
+}
+
+- (void) xxx_application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
+    [[inBeaconSdk getInstance] didReceiveLocalNotification:notification];   // make sure local notifications pass through the inbeacon SDK
+    [self xxx_application:application didReceiveLocalNotification:notification];
+}
     
-}
-
-- (UIBackgroundTaskIdentifier) backgroundTaskIdentifier {
-    NSNumber *asNumber = objc_getAssociatedObject(self, @selector(backgroundTaskIdentifier));
-    UIBackgroundTaskIdentifier  taskId = [asNumber unsignedIntValue];
-    return taskId;
-}
-
-- (void)setBackgroundTaskIdentifier:(UIBackgroundTaskIdentifier)backgroundTaskIdentifier {
-    NSNumber *asNumber = [NSNumber numberWithUnsignedInt:backgroundTaskIdentifier];
-    objc_setAssociatedObject(self, @selector(backgroundTaskIdentifier), asNumber, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-- (void) requestMoreBackgroundExecutionTime {
-
-    UIApplication *application = [UIApplication sharedApplication];
-
-    self.backgroundTaskIdentifier = [application beginBackgroundTaskWithExpirationHandler:^{
-        self.backgroundTaskIdentifier = UIBackgroundTaskInvalid;
-
-    }];
-}
-
-
 @end
