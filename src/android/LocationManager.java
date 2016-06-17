@@ -16,7 +16,8 @@
        specific language governing permissions and limitations
        under the License.
 */
-package com.unarin.cordova.beacon;
+//package com.unarin.cordova.beacon;
+package com.inbeacon.cordova.beacon;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -64,6 +65,10 @@ import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+// TODO connect & translate InbeaconManager!!
+import com.inbeacon.sdk.InbeaconManager;
+import com.inbeacon.sdk.VerifiedCapability;
+
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
@@ -79,7 +84,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
     private PausableThreadPoolExecutor threadPoolExecutor;
 
     private boolean debugEnabled = true;
-    private IBeaconServiceNotifier beaconServiceNotifier;
+    private com.unarin.cordova.beacon.IBeaconServiceNotifier beaconServiceNotifier;
 
     //listener for changes in state for system Bluetooth service
     private BroadcastReceiver broadcastReceiver;
