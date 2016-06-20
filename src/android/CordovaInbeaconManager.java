@@ -18,9 +18,17 @@
 */
 package com.inbeacon.cordova;
 
-// TODO connect & translate InbeaconManager!!
 import com.inbeacon.sdk.InbeaconManager;
 import com.inbeacon.sdk.VerifiedCapability;
+
+import android.app.Activity;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -30,17 +38,39 @@ import org.apache.cordova.PluginResult;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 public class CordovaInbeaconManager extends CordovaPlugin {
 
     public static final String TAG = "com.inbeacon.cordova";
-    public static final String clientId = "123";
-    public static final String clientSecret = "3456789";
+    private Activity activity = null;
+    private Context context = null;
 
-    /**
-     * Constructor.
-     */
-    public CordovaInbeaconManager() {
+    public void pluginInitialize() {
+        ApplicationInfo appliInfo = null;
+        this.activity = this.cordova.getActivity();
+        this.context = this.activity.getApplicationContext();
+
+        try {
+            appliInfo = this.activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) {}
+
+        // initialize with clientId and secret from plugin parameters.
+        String clientId = appliInfo.metaData.getString("com.inbeacon.android.CLIENTID");
+        String clientSecret = appliInfo.metaData.getString("com.inbeacon.android.SECRET");
+
+        if (clientId != null && clientSecret != null) {
+            InbeaconManager.initialize(context, clientId, clientSecret);
+        }
+        //
+        // If you have user credentials somewhere in your app, you can attach the account
+        //        HashMap<String, String> user=new HashMap<String, String>();
+        //        user.put("name","Dwight Schulz");                 // example only! don't use these in your own app
+        //        user.put("email","dwight@ateam.com");
+        //        InbeaconManager.getSharedInstance().attachUser(user);
+
+        // refresh data from server. Call this after attachuser, so everything is updated.
+        InbeaconManager.getSharedInstance().refresh();
     }
 
     /**
@@ -73,17 +103,17 @@ public class CordovaInbeaconManager extends CordovaPlugin {
      * @return                True if the action was valid, false if not.
      */
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if (action.equals("initialize")) {
+        if ("initialize".equals(action)) {
             initialize(args, callbackContext);
-        } else if (action.equals("attachUser")) {
+        } else if ("attachUser".equals(action)) {
             attachUser(args, callbackContext);
-        } else if (action.equals("detachUser")) {
+        } else if ("detachUser".equals(action)) {
             detachUser(callbackContext);
-        } else if (action.equals("refresh")) {
+        } else if ("refresh".equals(action)) {
             refresh(callbackContext);
-        } else if (action.equals("verifyCapabilities")) {
+        } else if ("verifyCapabilities".equals(action)) {
             verifyCapabilities(callbackContext);
-        } else if (action.equals("askPermissions")) {
+        } else if ("askPermissions".equals(action)) {
             askPermission(callbackContext);
         } else {
             return false;
@@ -91,11 +121,13 @@ public class CordovaInbeaconManager extends CordovaPlugin {
         return true;
     }
 
-    private void initialize(JSONArray args, CallbackContext callbackContext) {
-        String clientId = args.getString(0);
-        String clientSecret = args.getString(1);
-        InbeaconManager.initialize(callbackContext, clientId, clientSecret);
-//        callbackContext.success();
+    private void initialize(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        JSONObject kwargs = args.getJSONObject(0);
+        String clientId = kwargs.getString("clientId");
+        String clientSecret = kwargs.getString("clientSecret");
+        Context context = this.cordova.getActivity().getApplicationContext();
+        InbeaconManager.initialize(context, clientId, clientSecret);
+        callbackContext.success();
     }
 
     private void attachUser(JSONArray args, CallbackContext callbackContext) { }

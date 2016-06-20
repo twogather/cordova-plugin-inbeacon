@@ -50,6 +50,9 @@
 
     <platform name="android">
 
+      <preference name="INBEACON_CLIENTID" />
+      <preference name="INBEACON_SECRET" />
+
       <config-file target="res/xml/config.xml" parent="/*">
         <feature name="InBeacon" >
           <param name="android-package" value="com.inbeacon.cordova.CordovaInbeaconManager"/>
@@ -63,6 +66,14 @@
         <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
       </config-file>
 
+      <config-file target="AndroidManifest.xml" parent="/manifest/application">
+        <meta-data
+          android:name="com.inbeacon.android.CLIENTID"
+          android:value="$INBEACON_CLIENTID" />
+        <meta-data
+          android:name="com.inbeacon.android.SECRET"
+          android:value="$INBEACON_SECRET" />
+      </config-file>
 <!-- TODO Android Intents
       <config-file target="AndroidManifest.xml" parent="/manifest/application">
         <receiver android:name="org.altbeacon.beacon.startup.StartupBroadcastReceiver" >
