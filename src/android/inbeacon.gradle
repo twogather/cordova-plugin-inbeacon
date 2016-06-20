@@ -1,0 +1,12 @@
+// Extend Cordova build.gradle with inBeacon SDK from JCenter repo
+
+ext.postBuildExtras = {
+  repositories {
+    jcenter()
+  }
+
+  dependencies {
+    compile('com.inbeacon:android.sdk:1.+@aar'){ transitive = true }
+  }
+}
+

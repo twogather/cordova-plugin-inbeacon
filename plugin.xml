@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="cordova-plugin-inbeacon" 
-  version="1.0.0" 
-  xmlns="http://apache.org/cordova/ns/plugins/1.0" 
-  xmlns:android="http://schemas.android.com/apk/res/android">
+<plugin id="cordova-plugin-inbeacon"
+        version="1.0.0"
+        xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android">
 
     <name>inBeacon Plugin</name>
     <description>inBeacon cordova plugin supporting inBeacon SDK</description>
@@ -10,7 +10,10 @@
     <keywords>cordova,inbeacon,ibeacon,beacon,bluetooth,le</keywords>
     <repo>https://github.com/inbeacon/cordova-plugin-inbeacon.git</repo>
 
-    <!-- Third party libraries -->
+    <engines>
+        <engine name="cordova-android" version=">=4"/>
+        <engine name="cordova-plugman" version=">=4.2.0"/><!-- needed for gradleReference support -->
+    </engines>
 
     <!-- Plugin source code: Core -->
     <js-module name="inBeacon" src="www/inbeacon.js">
@@ -46,6 +49,7 @@
     </platform>
 
     <platform name="android">
+
       <config-file target="res/xml/config.xml" parent="/*">
         <feature name="InBeacon" >
           <param name="android-package" value="com.inbeacon.cordova.CordovaInbeaconManager"/>
@@ -59,6 +63,7 @@
         <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
       </config-file>
 
+<!-- TODO Android Intents
       <config-file target="AndroidManifest.xml" parent="/manifest/application">
         <receiver android:name="org.altbeacon.beacon.startup.StartupBroadcastReceiver" >
           <intent-filter>
@@ -82,14 +87,10 @@
           </intent-filter>
         </service>
       </config-file>
-
+-->
       <source-file src="src/android/CordovaInbeaconManager.java" target-dir="src/com/inbeacon/cordova" />
-      <!-- <source-file src="libs/android/inBeacon.jar" target-dir="libs" framework="true" /> -->
-      <!-- <lib-file src="libs/android/inBeacon.jar" /> -->
-      <framework src="com.inbeacon:android.sdk:1.5.0" />
-      <framework src="com.android.support:support-v4:22.2.0" />
-      <framework src="org.altbeacon:android-beacon-library:2.8.1" />
-      <framework src="com.loopj.android:android-asyn-http:1.4.9" />
+      <framework src="src/android/inbeacon.gradle" custom="true" type="gradleReference"/>
     </platform>
 
 </plugin>
+
