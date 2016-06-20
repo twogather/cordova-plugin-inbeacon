@@ -62,7 +62,7 @@ function handlers(){
 InBeacon.onHasSubscribersChange = function() {
     // If we just registered the first handler, make sure native listener is started.
     if (this.numHandlers === 1 && handlers() === 1) {
-        exec(battery._status, battery._error, "InBeacon", "startListener", []);
+        exec(inBeacon._listener, inBeacon._listenerError, "InBeacon", "startListener", []);
     } else if (handlers() === 0) {
         exec(null, null, "InBeacon", "stopListener", []);
     }
@@ -74,6 +74,9 @@ InBeacon.prototype._listener = function (data) {
     }
 };
 
+InBeacon.prototype._listenerError = function(){
+    console.log("Failed to initialize InBeacon event listener");
+}
 
 /**
  * Loglevel 0  = no logging

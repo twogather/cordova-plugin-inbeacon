@@ -63,9 +63,7 @@
 
 - (BOOL) xxx_application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
-    BOOL launchedWithoutOptions = launchOptions == nil;
-   
-    [[inBeaconSdk getInstance] setLogLevel:3];  // 0=none 1=error 2=log 3=info 4=debug
+    [[inBeaconSdk getInstance] setLogLevel:1];  // 0=none 1=error 2=log 3=info 4=debug
     
     NSString *clientId = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"inBeacon API clientId"];
     NSString *secret = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"inBeacon API secret"];
@@ -80,7 +78,6 @@
 
 - (void) xxx_application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
     [[inBeaconSdk getInstance] didReceiveLocalNotification:notification];   // make sure local notifications pass through the inbeacon SDK
-    [self xxx_application:application didReceiveLocalNotification:notification];
 }
     
 @end

@@ -19,7 +19,7 @@
         <preference name="INBEACON_SECRET" />
       
         <info>
-             In order to run this plugin, you need to obtain your clientId and scecret from InBeacon.
+             In order to run this plugin, you need to obtain your clientId and secret from InBeacon.
              Visit to https://console.inbeacon.nl
         </info>
 

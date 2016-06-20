@@ -45,7 +45,7 @@
 		} else {
 			return [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
 		}
-    } :command];
+	} :command :false];
 }
 
 - (void) refresh:(CDVInvokedUrlCommand *)command {
@@ -90,21 +90,85 @@
 	
 }
 
-- (void) onNotification:(NSNotification *)notification {
-	NSDictionary* event;
-	if([notification.name isEqual: @"inb:region"]) {
-		NSString* eventType = [[notification.userInfo objectForKey:@"io"] isEqual:@"i" ] ? @"enterregion" : @"exitregion";
+- (void) checkCapabilitiesAndRights:(CDVInvokedUrlCommand *)command {
+	[self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand * command) {
+		NSError* error;
+		if(![[inBeaconSdk getInstance] checkCapabilitiesAndRights:&error]) {
+			return [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:error.userInfo];
+		} else {
+			return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+		}
+	} :command];
+}
+
+- (void) checkCapabilitiesAndRightsWithAlert:(CDVInvokedUrlCommand *)command {
+	[self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand * command) {
+		[[inBeaconSdk getInstance] checkCapabilitiesAndRightsWithAlert];
 		
-		event = [NSDictionary dictionaryWithObjectsAndKeys:
-				 eventType, @"event",
-				 notification.userInfo, @"data",
-				 nil] ;
+		return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+	} :command :false];
+}
+
+- (void) getInRegions:(CDVInvokedUrlCommand *)command {
+	[self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand * command) {
+		NSArray *currentRegions = [[inBeaconSdk getInstance]  getInRegions];
+		
+		return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:currentRegions];
+	} :command];
+}
+
+- (void) getBeaconState:(CDVInvokedUrlCommand *)command {
+	[self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand * command) {
+		NSArray *beaconState = [[inBeaconSdk getInstance] getBeaconState];
+		
+		return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:beaconState];
+	} :command];
+}
+
+- (void) onNotification:(NSNotification *)notification {
+	NSDictionary *primaryEvent = nil;
+	NSDictionary *secondaryEvent = nil;
+	
+	if([notification.name isEqual: @"inb:region"]) {
+	
+		NSString* eventType = [[notification.userInfo objectForKey:@"IO"] isEqual:@"I" ] ? @"enterregion" : @"exitregion";
+		primaryEvent = @{ @"event": eventType, @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+		
 	} else if([notification.name  isEqual: @"inb:location"]){
 		
+		NSString* eventType = [[notification.userInfo objectForKey:@"IO"] isEqual:@"I" ] ? @"enterlocation" : @"exitlocation";
+		primaryEvent = @{ @"event": eventType, @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+	
+	} else if([notification.name  isEqual: @"inb:proximity"]){
+	
+		NSString* eventType = [[notification.userInfo objectForKey:@"IO"] isEqual:@"I" ] ? @"enterproximity" : @"exitproximity";
+		primaryEvent = @{ @"event": eventType, @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+		secondaryEvent = @{ @"event": @"proximity" , @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+	
+	} else if([notification.name  isEqual: @"inb:locationsUpdate"]){
+		
+//		primaryEvent = @{ @"event": @"regionsupdate", @"data": notification.userInfo };
+		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
+						@"regionsupdate", @"event",
+						notification.userInfo, @"data",
+						nil];
+		
+	} else if([notification.name  isEqual: @"inb:AppEvent"]){
+		
+		primaryEvent = @{ @"event": @"appevent", @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+		
+	} else if([notification.name  isEqual: @"inb:AppAction"]){
+		
+		primaryEvent = @{ @"event": @"appaction", @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+		
 	}
-	
-	
-	[self notifyListener:event];
+
+	if( primaryEvent != nil){
+		[self notifyListener:primaryEvent];
+	}
+	if( secondaryEvent != nil){
+		[self notifyListener:secondaryEvent];
+	}
 }
 
 - (void) startListener:(CDVInvokedUrlCommand *)command {
@@ -192,7 +256,7 @@
 }
 
 - (void) _handleCallSafely: (CDVPluginCommandHandler) unsafeHandler : (CDVInvokedUrlCommand*) command : (BOOL) runInBackground {
-    [self _handleCallSafely:unsafeHandler :command :true :command.callbackId];
+    [self _handleCallSafely:unsafeHandler :command :runInBackground :command.callbackId];
     
 }
 
