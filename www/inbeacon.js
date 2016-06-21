@@ -129,21 +129,75 @@ InBeacon.prototype.refresh = function(successCallback, errorCallback){
 /**
  * To change the logging level, using one of the predefined constants
  *
- * @param logLevel
+ * @param int logLevel 0 - 4 (none - debug)
  * @param {Function} successCallback The function to call when succeeded
  * @param {Function} errorCallback The function to call when there is an error (OPTIONAL)
  */
 InBeacon.prototype.setLogLevel = function(logLevel, successCallback, errorCallback){
     exec(successCallback, errorCallback || null, "InBeacon", "setLogLevel", [logLevel]);
-}
+};
 
+/**
+ * Attach local userinformation to inbeacon
+ *
+ * @param userInfo
+ * @param successCallback
+ * @param errorCallback
+ */
 InBeacon.prototype.attachUser = function(userInfo, successCallback, errorCallback){
     exec(successCallback, errorCallback || null, "InBeacon", "attachUser", [userInfo]);
-}
+};
 
+/**
+ * Logout the current user. From now only anonymous info is send to inBeacon server.
+ *
+ * @param successCallback
+ * @param errorCallback
+ */
 InBeacon.prototype.detachUser = function(successCallback, errorCallback){
     exec(successCallback, errorCallback || null, "InBeacon", "detachUser", []);
-}
+};
+
+/**
+ * Check to see if the app has the rights to run location and notification services.
+ *
+ * @param successCallback
+ * @param errorCallback
+ */
+InBeacon.prototype.checkCapabilitiesAndRights = function(successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "checkCapabilitiesAndRights", []);
+};
+
+/**
+ * iOS only! Checks capabilities and rights and calls an alert if something is not OK.
+ *
+ * @param successCallback
+ * @param errorCallback
+ */
+InBeacon.prototype.checkCapabilitiesAndRightsWithAlert = function(successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "checkCapabilitiesAndRightsWithAlert", []);
+};
+
+/**
+ * iOS only! Get an array of all current defined location objects (regions).
+ *
+ * @param successCallback
+ * @param errorCallback
+ */
+InBeacon.prototype.getInRegions = function(successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "getInRegions", []);
+};
+
+/**
+ * iOS only! Get an array of all actual beacons within view, including their respective distance and proximity state.
+ *
+ * @param successCallback
+ * @param errorCallback
+ */
+InBeacon.prototype.getBeaconState = function(successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "getBeaconState", []);
+};
+
 
 var inBeacon = new InBeacon();
 
