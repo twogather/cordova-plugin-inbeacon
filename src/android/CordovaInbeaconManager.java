@@ -16,19 +16,11 @@
        specific language governing permissions and limitations
        under the License.
 */
+
 package com.inbeacon.cordova;
 
 import com.inbeacon.sdk.InbeaconManager;
 import com.inbeacon.sdk.VerifiedCapability;
-
-import android.app.Activity;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -36,23 +28,32 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Iterator;
+
 public class CordovaInbeaconManager extends CordovaPlugin {
 
     public static final String TAG = "com.inbeacon.cordova";
-    private Activity activity = null;
-    private Context context = null;
 
     public void pluginInitialize() {
+        Activity activity = this.cordova.getActivity();
         ApplicationInfo appliInfo = null;
-        this.activity = this.cordova.getActivity();
-        this.context = this.activity.getApplicationContext();
 
         try {
-            appliInfo = this.activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
+            appliInfo = activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
         } catch (PackageManager.NameNotFoundException e) {}
 
         // initialize with clientId and secret from plugin parameters.
@@ -60,33 +61,25 @@ public class CordovaInbeaconManager extends CordovaPlugin {
         String clientSecret = appliInfo.metaData.getString("com.inbeacon.android.SECRET");
 
         if (clientId != null && clientSecret != null) {
-            InbeaconManager.initialize(context, clientId, clientSecret);
+            InbeaconManager.initialize(activity.getApplicationContext(), clientId, clientSecret);
+            InbeaconManager.getSharedInstance().askPermissions(activity);
         }
-        //
-        // If you have user credentials somewhere in your app, you can attach the account
-        //        HashMap<String, String> user=new HashMap<String, String>();
-        //        user.put("name","Dwight Schulz");                 // example only! don't use these in your own app
-        //        user.put("email","dwight@ateam.com");
-        //        InbeaconManager.getSharedInstance().attachUser(user);
 
-        // refresh data from server. Call this after attachuser, so everything is updated.
-        InbeaconManager.getSharedInstance().refresh();
+//        InbeaconManager.getSharedInstance().refresh();
     }
 
     /**
      * The final call you receive before your activity is destroyed.
      */
     public void onDestroy() {
-        /*
-        InBeaconManager.unbindService(this);
+//        InBeaconManager.unbindService(this);
 
-        if (broadcastReceiver != null) {
-            cordova.getActivity().unregisterReceiver(broadcastReceiver);
-            broadcastReceiver = null;
-        }
+//        if (broadcastReceiver != null) {
+//            cordova.getActivity().unregisterReceiver(broadcastReceiver);
+//            broadcastReceiver = null;
+//        }
 
         super.onDestroy();
-        */
     }
 
     public void onReset() {}
@@ -126,18 +119,67 @@ public class CordovaInbeaconManager extends CordovaPlugin {
         String clientId = kwargs.getString("clientId");
         String clientSecret = kwargs.getString("clientSecret");
         Context context = this.cordova.getActivity().getApplicationContext();
+
         InbeaconManager.initialize(context, clientId, clientSecret);
+        InbeaconManager.getSharedInstance().askPermissions(this.cordova.getActivity());
         callbackContext.success();
     }
 
-    private void attachUser(JSONArray args, CallbackContext callbackContext) { }
+    private void attachUser(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        JSONObject kwargs = args.getJSONObject(0);
 
-    private void detachUser(CallbackContext callbackContext) { }
+        // kwargs keys can be:
+        // name, email, customerid, address, gender, zip, city, country,  birth, phone_mobile,
+        // phone_home, phone_work, social_facebook_id, social_twitter_id, social_linkedin_id
+        HashMap<String, String> user = new HashMap<String, String>();
+        for (Iterator<String> iter = kwargs.keys(); iter.hasNext();) {
+            String key = iter.next();
+            user.put(key, kwargs.getString(key));
+        }
 
-    private void refresh(CallbackContext callbackContext) { }
+        InbeaconManager.getSharedInstance().attachUser(user);
+        callbackContext.success();
+    }
 
-    private void verifyCapabilities(CallbackContext callbackContext) { }
+    private void detachUser(CallbackContext callbackContext) {
+        InbeaconManager.getSharedInstance().detachUser();
+        callbackContext.success();
+    }
 
-    private void askPermission(CallbackContext callbackContext) { }
+    private void refresh(CallbackContext callbackContext) {
+        InbeaconManager.getSharedInstance().refresh();
+        callbackContext.success();
+    }
 
+    private void verifyCapabilities(CallbackContext callbackContext) {
+        VerifiedCapability verifiedCaps = InbeaconManager.getSharedInstance().verifyCapabilities();
+
+        if (verifiedCaps != VerifiedCapability.CAP_OK) {
+            switch (verifiedCaps) {
+                case CAP_BLUETOOTH_DISABLED:
+                    callbackContext.error("This device has bluetooth turned off");
+                    break;
+                case CAP_BLUETOOTH_LE_NOT_AVAILABLE:
+                    callbackContext.error("This device does not support bluetooth LE needed for iBeacons");
+                    break;
+                case CAP_SDK_TOO_OLD:
+                    callbackContext.error("This device SDK is too old");
+                    break;
+                default:
+                    callbackContext.error("This device does not support inBeacon for an unknown reason");
+                    break;
+            }
+        } else {
+            callbackContext.success("This device supports iBeacons and the inBeacon SDK");
+        }
+    }
+
+    private void askPermission(CallbackContext callbackContext) {
+        InbeaconManager.getSharedInstance().askPermissions(this.cordova.getActivity());
+        callbackContext.success();
+    }
+
+    //////////////// EVENT HANDLING /////////////////////////////////
+
+    // TODO
 }
