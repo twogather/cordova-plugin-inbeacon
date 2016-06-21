@@ -91,31 +91,7 @@
           android:name="com.inbeacon.android.SECRET"
           android:value="$INBEACON_SECRET" />
       </config-file>
-<!-- TODO Android Intents
-      <config-file target="AndroidManifest.xml" parent="/manifest/application">
-        <receiver android:name="org.altbeacon.beacon.startup.StartupBroadcastReceiver" >
-          <intent-filter>
-            <action android:name="android.intent.action.BOOT_COMPLETED" />
-            <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
-            <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
-          </intent-filter>
-        </receiver>
-        <service android:enabled="true"
-                 android:exported="true"
-                 android:isolatedProcess="false"
-                 android:label="iBeacon"
-                 android:name="org.altbeacon.beacon.service.BeaconService">
-        </service>
-        <service android:enabled="true"
-          android:name="org.altbeacon.beacon.BeaconIntentProcessor">
-          <meta-data android:name="background" android:value="true" />
-          <intent-filter android:priority="1" >
-            <action android:name="com.inbeacon.cordova.beacon.IBeaconPlugin.DID_RANGING" />
-            <action android:name="com.inbeacon.cordova.beacon.IBeaconPlugin.DID_MONITORING" />
-          </intent-filter>
-        </service>
-      </config-file>
--->
+
       <source-file src="src/android/CordovaInbeaconManager.java" target-dir="src/com/inbeacon/cordova" />
       <framework src="src/android/inbeacon.gradle" custom="true" type="gradleReference"/>
     </platform>

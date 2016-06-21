@@ -23,9 +23,7 @@ import com.inbeacon.sdk.InbeaconManager;
 import com.inbeacon.sdk.VerifiedCapability;
 
 import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 
 import android.app.Activity;
@@ -35,7 +33,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.os.Build;
+import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,41 +43,57 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 public class CordovaInbeaconManager extends CordovaPlugin {
 
-    public static final String TAG = "com.inbeacon.cordova";
+    public static final String TAG = "cordova-plugin-inbeacon";
+    private BroadcastReceiver broadcastReceiver;
+    private CallbackContext eventCallbackContext;
 
+    /**
+     * Constructor
+     */
+    public CordovaInbeaconManager() {
+        broadcastReceiver = null;
+    }
+
+    /**
+     *  Initialize inBeaconManager if 'clientId' and 'secret' plugin parameters are set.
+     */
     public void pluginInitialize() {
-        Activity activity = this.cordova.getActivity();
+        Activity activity = cordova.getActivity();
         ApplicationInfo appliInfo = null;
-
         try {
             appliInfo = activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
-        } catch (PackageManager.NameNotFoundException e) {}
-
-        // initialize with clientId and secret from plugin parameters.
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
         String clientId = appliInfo.metaData.getString("com.inbeacon.android.CLIENTID");
         String clientSecret = appliInfo.metaData.getString("com.inbeacon.android.SECRET");
 
         if (clientId != null && clientSecret != null) {
-            InbeaconManager.initialize(activity.getApplicationContext(), clientId, clientSecret);
-            InbeaconManager.getSharedInstance().askPermissions(activity);
+            initInbeaconManager(cordova.getActivity().getApplicationContext(), clientId, clientSecret);
+            initEventListener();
         }
-
-//        InbeaconManager.getSharedInstance().refresh();
     }
 
     /**
      * The final call you receive before your activity is destroyed.
      */
     public void onDestroy() {
-//        InBeaconManager.unbindService(this);
+        if (broadcastReceiver != null) {
+            cordova.getActivity().unregisterReceiver(broadcastReceiver);
+            broadcastReceiver = null;
+        }
 
-//        if (broadcastReceiver != null) {
-//            cordova.getActivity().unregisterReceiver(broadcastReceiver);
-//            broadcastReceiver = null;
-//        }
+        // release events in JS side
+        if (eventCallbackContext != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK);
+            result.setKeepCallback(false);
+            eventCallbackContext.sendPluginResult(result);
+            eventCallbackContext = null;
+        }
 
         super.onDestroy();
     }
@@ -85,7 +101,7 @@ public class CordovaInbeaconManager extends CordovaPlugin {
     public void onReset() {}
 
 
-    //////////////// PLUGIN ENTRY POINT /////////////////////////////
+    //////////////// PLUGIN ENTRY POINT //////////////////////////////////////
 
     /**
      * Executes the request and returns PluginResult.
@@ -96,10 +112,11 @@ public class CordovaInbeaconManager extends CordovaPlugin {
      * @return                True if the action was valid, false if not.
      */
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+
         if ("initialize".equals(action)) {
-            initialize(args, callbackContext);
+            initialize(args.optJSONObject(0), callbackContext);
         } else if ("attachUser".equals(action)) {
-            attachUser(args, callbackContext);
+            attachUser(args.optJSONObject(0), callbackContext);
         } else if ("detachUser".equals(action)) {
             detachUser(callbackContext);
         } else if ("refresh".equals(action)) {
@@ -108,26 +125,34 @@ public class CordovaInbeaconManager extends CordovaPlugin {
             verifyCapabilities(callbackContext);
         } else if ("askPermissions".equals(action)) {
             askPermission(callbackContext);
+        } else if ("startListener".equals(action)) {
+            registerEventCallback(callbackContext);
+        } else if ("stopListener".equals(action)) {
+            unregisterEventCallback(callbackContext);
         } else {
             return false;
         }
         return true;
     }
 
-    private void initialize(JSONArray args, CallbackContext callbackContext) throws JSONException {
-        JSONObject kwargs = args.getJSONObject(0);
+    //////////////// INBEACON SDK METHODS ////////////////////////////////////
+
+    private void initialize(JSONObject kwargs, CallbackContext callbackContext) throws JSONException {
+        if (InbeaconManager.getSharedInstance() != null) {
+            callbackContext.error("InBeaconManager is already initialized");
+            return;
+        }
         String clientId = kwargs.getString("clientId");
         String clientSecret = kwargs.getString("clientSecret");
-        Context context = this.cordova.getActivity().getApplicationContext();
+        Context context = cordova.getActivity().getApplicationContext();
 
-        InbeaconManager.initialize(context, clientId, clientSecret);
-        InbeaconManager.getSharedInstance().askPermissions(this.cordova.getActivity());
+        initInbeaconManager(context, clientId, clientSecret);
+        initEventListener();
+
         callbackContext.success();
     }
 
-    private void attachUser(JSONArray args, CallbackContext callbackContext) throws JSONException {
-        JSONObject kwargs = args.getJSONObject(0);
-
+    private void attachUser(JSONObject kwargs, CallbackContext callbackContext) throws JSONException {
         // kwargs keys can be:
         // name, email, customerid, address, gender, zip, city, country,  birth, phone_mobile,
         // phone_home, phone_work, social_facebook_id, social_twitter_id, social_linkedin_id
@@ -175,11 +200,123 @@ public class CordovaInbeaconManager extends CordovaPlugin {
     }
 
     private void askPermission(CallbackContext callbackContext) {
-        InbeaconManager.getSharedInstance().askPermissions(this.cordova.getActivity());
+        InbeaconManager.getSharedInstance().askPermissions(cordova.getActivity());
         callbackContext.success();
     }
 
-    //////////////// EVENT HANDLING /////////////////////////////////
+    //////////////// CORDOVA FUNCTIONS ///////////////////////////////////////
 
-    // TODO
+    // broadcastReceiver uses this.eventCallbackContext to pass on events to JavaScript
+    private void registerEventCallback(CallbackContext callbackContext) {
+        if (this.eventCallbackContext != null) {
+            callbackContext.error("Inbeacon event listener is already running");
+            return;
+        }
+
+        this.eventCallbackContext = callbackContext;
+        sendNoResult();
+    }
+
+    private void unregisterEventCallback(CallbackContext callbackContext) {
+        this.eventCallbackContext = null;
+        callbackContext.success();
+    }
+
+    private void initInbeaconManager(Context context, String clientId, String clientSecret) {
+        InbeaconManager.initialize(context, clientId, clientSecret);
+        InbeaconManager.getSharedInstance().askPermissions(cordova.getActivity());
+    }
+
+    private void initEventListener() {
+
+        if (broadcastReceiver != null) {
+            // "Already listening, not adding again"
+            return;
+        }
+
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                sendUpdate(getEventObject(intent));
+            }
+        };
+
+        // get all notifications from the inBeacon SDK to our broadcastReceiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.inbeacon.sdk.event.enterregion");     // user entered a region
+        filter.addAction("com.inbeacon.sdk.event.exitregion");      // user left a region
+        filter.addAction("com.inbeacon.sdk.event.enterlocation");   // user entered a location
+        filter.addAction("com.inbeacon.sdk.event.exitlocation");    // user left a location
+        filter.addAction("com.inbeacon.sdk.event.regionsupdate");   // region definitions were updated
+        filter.addAction("com.inbeacon.sdk.event.enterproximity");  // user entered a beacon proximity
+        filter.addAction("com.inbeacon.sdk.event.exitproximity");   // user left a beacon proximity
+        filter.addAction("com.inbeacon.sdk.event.proximity");       // low level proximity update, once every second when beacons are around
+        filter.addAction("com.inbeacon.sdk.event.appevent");        // defined in the backend for special app-specific pages to show
+        filter.addAction("com.inbeacon.sdk.event.appaction");       // defined in the backend to handle your own local notifications
+
+        LocalBroadcastManager
+                .getInstance(cordova.getActivity().getApplicationContext())
+                .registerReceiver(broadcastReceiver, filter);
+
+    }
+
+    /**
+     * Transform Android event data into JSON Object used by JavaScript
+     * @param intent inBeacon SDK event data
+     * @return a JSONObject with keys 'event', 'name' and 'data'
+     */
+    private JSONObject getEventObject(Intent intent) {
+        String action  = intent.getAction();
+        String event   = action.substring(action.lastIndexOf(".")+1); // last part of action
+        String message = intent.getStringExtra("message");
+        Bundle extras  = intent.getExtras();
+
+        JSONObject eventObject = new JSONObject();
+        JSONObject data = new JSONObject();
+
+        try {
+            if (extras != null) {
+                Set<String> keys = extras.keySet();
+                for (String key : keys) {
+                    data.put(key, extras.get(key));                     // Android API < 19
+//                    data.put(key, JSONObject.wrap(extras.get(key)));    // Android API >= 19
+                }
+            }
+            data.put("message", message);
+
+            eventObject.put("event", event);
+            eventObject.put("name", event);
+            eventObject.put("data", data);
+
+        } catch (JSONException e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+
+        return eventObject;
+    }
+
+    /**
+     * Send a new plugin result back to JavaScript, without closing callback
+     *
+     * @param data InBeacon event result containing message and extras
+     */
+    private void sendUpdate(JSONObject data) {
+        if (this.eventCallbackContext != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+            result.setKeepCallback(true);
+            this.eventCallbackContext.sendPluginResult(result);
+        }
+    }
+
+    /**
+     * Send a new plugin result with no result. Use to keep callback channel open for events
+     */
+    private void sendNoResult() {
+        if (this.eventCallbackContext != null) {
+            PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
+            pluginResult.setKeepCallback(true);
+            this.eventCallbackContext.sendPluginResult(pluginResult);
+        }
+    }
+
 }
