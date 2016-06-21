@@ -69,8 +69,8 @@ InBeacon.onHasSubscribersChange = function() {
 };
 
 InBeacon.prototype._listener = function (data) {
-    if (data && data.event) {
-        cordova.fireDocumentEvent('inbeacon.'+data.event, data);
+    if (data && data.name) {
+        cordova.fireDocumentEvent('inbeacon.'+data.name, data || {});
     }
 };
 

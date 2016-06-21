@@ -20,6 +20,10 @@
 #import "CDVInBeacon.h"
 #import <inBeaconSdk/inBeaconSdk.h>
 
+static NSString *const IO_KEY = @"io";
+static NSString *const IO_IN = @"i";
+static NSString *const IO_OUT = @"o";
+
 @implementation CDVInBeacon
 
 @synthesize listenerCallbackId;
@@ -74,6 +78,7 @@
 		NSDictionary* userInfo = command.arguments[0];
 		if([userInfo count] > 0){
 			[self.inBeacon attachUser:userInfo];
+			[self.inBeacon refresh];
 		}
 		
 		return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -128,53 +133,54 @@
 - (void) onNotification:(NSNotification *)notification {
 	NSDictionary *primaryEvent = nil;
 	NSDictionary *secondaryEvent = nil;
+
 	
 	if([notification.name isEqual: @"inb:region"]) {
 	
-		NSString* eventType = [[notification.userInfo objectForKey:@"IO"] isEqual:@"I" ] ? @"enterregion" : @"exitregion";
+		NSString* eventType = [notification.userInfo[IO_KEY]  isEqual: IO_IN] ? @"enterregion" : @"exitregion";
 		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
-						eventType, @"event",
+						eventType, @"name",
 						notification.userInfo, @"data",
 						nil];
 		
 	} else if([notification.name  isEqual: @"inb:location"]){
 		
-		NSString* eventType = [[notification.userInfo objectForKey:@"IO"] isEqual:@"I" ] ? @"enterlocation" : @"exitlocation";
+		NSString* eventType = [notification.userInfo[IO_KEY]  isEqual: IO_IN] ? @"enterlocation" : @"exitlocation";
 		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
-						eventType, @"event",
+						eventType, @"name",
 						notification.userInfo, @"data",
 						nil];
 	
 	} else if([notification.name  isEqual: @"inb:proximity"]){
 	
-		NSString* eventType = [[notification.userInfo objectForKey:@"IO"] isEqual:@"I" ] ? @"enterproximity" : @"exitproximity";
+		NSString* eventType = [notification.userInfo[IO_KEY]  isEqual: IO_IN] ? @"enterproximity" : @"exitproximity";
 		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
-						eventType, @"event",
+						eventType, @"name",
 						notification.userInfo, @"data",
 						nil];
 		secondaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
-							@"proximity", @"event",
+							@"proximity", @"name",
 							notification.userInfo, @"data",
 						nil];
 	
 	} else if([notification.name  isEqual: @"inb:locationsUpdate"]){
 		
 		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
-						@"regionsupdate", @"event",
+						@"regionsupdate", @"name",
 						notification.userInfo, @"data",
 						nil];
 		
 	} else if([notification.name  isEqual: @"inb:AppEvent"]){
 		
  		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
-											@"appevent", @"event",
+											@"appevent", @"name",
 											notification.userInfo, @"data",
 											nil];
 
 	} else if([notification.name  isEqual: @"inb:AppAction"]){
 		
 		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
-						@"appaction", @"event",
+						@"appaction", @"name",
 						notification.userInfo, @"data",
 						nil];
 		
