@@ -132,22 +132,33 @@
 	if([notification.name isEqual: @"inb:region"]) {
 	
 		NSString* eventType = [[notification.userInfo objectForKey:@"IO"] isEqual:@"I" ] ? @"enterregion" : @"exitregion";
-		primaryEvent = @{ @"event": eventType, @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
+						eventType, @"event",
+						notification.userInfo, @"data",
+						nil];
 		
 	} else if([notification.name  isEqual: @"inb:location"]){
 		
 		NSString* eventType = [[notification.userInfo objectForKey:@"IO"] isEqual:@"I" ] ? @"enterlocation" : @"exitlocation";
-		primaryEvent = @{ @"event": eventType, @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
+						eventType, @"event",
+						notification.userInfo, @"data",
+						nil];
 	
 	} else if([notification.name  isEqual: @"inb:proximity"]){
 	
 		NSString* eventType = [[notification.userInfo objectForKey:@"IO"] isEqual:@"I" ] ? @"enterproximity" : @"exitproximity";
-		primaryEvent = @{ @"event": eventType, @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
-		secondaryEvent = @{ @"event": @"proximity" , @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
+						eventType, @"event",
+						notification.userInfo, @"data",
+						nil];
+		secondaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
+							@"proximity", @"event",
+							notification.userInfo, @"data",
+						nil];
 	
 	} else if([notification.name  isEqual: @"inb:locationsUpdate"]){
 		
-//		primaryEvent = @{ @"event": @"regionsupdate", @"data": notification.userInfo };
 		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
 						@"regionsupdate", @"event",
 						notification.userInfo, @"data",
@@ -155,11 +166,17 @@
 		
 	} else if([notification.name  isEqual: @"inb:AppEvent"]){
 		
-		primaryEvent = @{ @"event": @"appevent", @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
-		
+ 		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
+											@"appevent", @"event",
+											notification.userInfo, @"data",
+											nil];
+
 	} else if([notification.name  isEqual: @"inb:AppAction"]){
 		
-		primaryEvent = @{ @"event": @"appaction", @"data": (notification.userInfo != nil ? notification.userInfo : nil) };
+		primaryEvent = [NSDictionary dictionaryWithObjectsAndKeys:
+						@"appaction", @"event",
+						notification.userInfo, @"data",
+						nil];
 		
 	}
 
