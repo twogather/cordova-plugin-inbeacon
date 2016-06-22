@@ -1,9 +1,9 @@
 {
-  "name": "nl.inbeacon.inBeacon",
+  "name": "cordova-plugin-inbeacon",
   "version": "1.0.2",
-  "description": "inBeacon plugin ",
+  "description": "inBeacon plugin",
   "cordova": {
-    "id": "nl.inbeacon.inBeacon",
+    "id": "cordova-plugin-inbeacon",
     "platforms": [
       "ios",
       "android"
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/inbeacon/cordova-plugin-inbeacon.git"
+    "url": "git+https://github.com/twogather/cordova-plugin-inbeacon.git"
   },
   "keywords": [
     "cordova",

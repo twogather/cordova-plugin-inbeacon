@@ -20,37 +20,100 @@
 
 ## ![inBeacon Cordova Plugin](http://snqpo25gig94mv8mcrpilul6.wpengine.netdna-cdn.com/wp-content/uploads/2016/02/inbeacon-dark-retina.png) Cordova inBeacon plugin
 
+This plugin enables the InBeacon API for Cordova based apps on iOS and Android.
+
 ### Features
 
 #### Features available on both Android and iOS
 
- * Ranging
- * Monitoring
- 
+##### API calls
+
+ * initialize
+ * refresh
+ * attachUser
+ * detachUser
+ * checkCapabilitiesAndRights
+
+##### API events
+
+ * inbeacon.enterregion
+ * inbeacon.exitregion
+ * inbeacon.enterlocation
+ * inbeacon.exitlocation
+ * inbeacon.regionsupdate
+ * inbeacon.enterproximity
+ * inbeacon.exitproximity
+ * inbeacon.proximity
+ * inbeacon.appevent
+ * inbeacon.appaction
+
 #### Features exclusive to iOS
 
- * Region Monitoring (or geo fencing), works in all app states. 
- * Advertising device as an iBeacon
+##### API calls
+
+ * setLoglevel
+ * checkCapabilitiesAndRightsWithAlert
+ * getInRegions
+ * getBeaconState
 
 ### Installation
 
 ```
-cordova plugin add https://github.com/twogather/cordova-plugin-ibeacon.git
+cordova plugin add https://github.com/twogather/cordova-plugin-inbeacon.git
 ```
+
+#### Installing with InBeacon clientId and secret in advance. 
+
+Using this method you don't have to initialize the InBeacon SDK, it will be done automatically when your app starts.
+
+```
+cordova plugin add https://github.com/twogather/cordova-plugin-inbeacon.git --variable INBEACON_CLIENTID="your-clientid" --variable INBEACON_SECRET="your-secret"
+```
+
 
 ### Usage
 
-The plugin's API closely mimics the one exposed through the [CLLocationManager](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/CLLocationManager/CLLocationManager.html) introduced in iOS 7.
+#### initialize
 
-Since version 2, the main ```IBeacon``` facade of the DOM is called ```LocationManager``` and it's API is based on promises instead of callbacks.
-Another important change of version 2 is that it no longer pollutes the global namespace, instead all the model classes and utilities are accessible
-through the ```cordova.plugins.locationManager``` reference chain.
+To enable the features of the InBeacon SDK you need to initialize first.
 
-Since version 3.2 the Klass dependency has been removed and therefore means creation of the delegate has changed.
+```
+var userInfo = {
+    clientId : 'clientId obtained from InBeacon',
+    secret   : 'secret obtained from InBeacon'
+};
 
-#### iOS 8 Permissions
+cordova.plugins.inBeacon.initialize(userInfo, function () {
+        console.log('Succesfully initialized inBeacon API');
+    }, function () {
+        console.error('inBeacon initialization failed');
+    });
 
-On iOS 8, you have to request permissions from the user of your app explicitly. You can do this through the plugin's API.
-See the [LocationManager](https://github.com/petermetz/cordova-plugin-ibeacon/blob/master/www/LocationManager.js)'s 
-related methods: ```requestWhenInUseAuthorization``` and ```requestAlwaysAuthorization``` for further details.
+> You can skip this step when this plugins has been installed by the second method!
+
+#### refresh
+
+```
+cordova.plugins.inBeacon.refresh(function(){
+        console.log('refresh done!');
+    }, function () {
+        console.error('refresh failed');
+    });
+```
+
+#### attachUser
+
+Attach local userinformation to inbeacon. For instance, the user might enter account information in the app. It is also possible not to attach a user, in that case the device is anonymous.
+
+```
+var userInfo = {
+    name  : 'Dwight Schulz',
+    email : 'dwight@ateam.com'
+};
+cordova.plugins.inBeacon.attachUser(userInfo, function () {
+        console.log('Succesfully attached user');
+    }, function () {
+        console.error('Failed to attach user');
+    });
+```
 

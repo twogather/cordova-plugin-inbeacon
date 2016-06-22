@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin id="cordova-plugin-inbeacon"
-        version="1.0.0"
+        version="1.0.2"
         xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -13,6 +13,7 @@
     <engines>
         <engine name="cordova-android" version=">=4"/>
         <engine name="cordova-plugman" version=">=4.2.0"/><!-- needed for gradleReference support -->
+        <engine name="cordova-ios" version=">=3.9.0"/>
     </engines>
 
     <!-- Plugin source code: Core -->
@@ -21,8 +22,8 @@
     </js-module>
 
     <platform name="ios">
-        <preference name="INBEACON_CLIENTID" />
-        <preference name="INBEACON_SECRET" />
+        <preference name="INBEACON_CLIENTID" default="inbclientid" />
+        <preference name="INBEACON_SECRET" default="inbsecret" />
       
         <info>
              In order to run this plugin, you need to obtain your clientId and secret from InBeacon.
