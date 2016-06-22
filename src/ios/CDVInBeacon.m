@@ -44,7 +44,7 @@ static NSString *const IO_OUT = @"o";
 		NSString* secret = [kwargs objectForKey:@"secret"];
 		if (clientId != nil && secret != nil) {
 			self.inBeacon = [inBeaconSdk inbeaconWithClientID: clientId andClientSecret: secret];
-			
+		        [self.inBeacon refresh];	
 			return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
 		} else {
 			return [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
