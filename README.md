@@ -88,8 +88,9 @@ cordova.plugins.inBeacon.initialize(userInfo, function () {
     }, function () {
         console.error('inBeacon initialization failed');
     });
+```
 
-> You can skip this step when this plugins has been installed by the second method!
+> Note: You can skip this step when this plugins has been installed by the second method!
 
 #### refresh
 
@@ -107,7 +108,7 @@ Attach local userinformation to inbeacon. For instance, the user might enter acc
 
 ```
 var userInfo = {
-    name  : 'Dwight Schulz',
+    name  : 'Dwight Schultz',
     email : 'dwight@ateam.com'
 };
 cordova.plugins.inBeacon.attachUser(userInfo, function () {
@@ -115,5 +116,18 @@ cordova.plugins.inBeacon.attachUser(userInfo, function () {
     }, function () {
         console.error('Failed to attach user');
     });
+```
+
+#### events
+
+To handle an InBeacon event just add a new event listener.
+
+```
+document.addEventListener('inbeacon.enterregion', handleEnterRegion, false);
+
+function handleEnterRegion(event){
+    console.log('Event name:' + event.name);
+    console.log('Event data:' + JSON.stringify(event.data));
+}
 ```
 
