@@ -124,7 +124,7 @@ public class CordovaInbeaconManager extends CordovaPlugin {
         } else if ("verifyCapabilities".equals(action)) {
             verifyCapabilities(callbackContext);
         } else if ("askPermissions".equals(action)) {
-            askPermission(callbackContext);
+            askPermissions(callbackContext);
         } else if ("startListener".equals(action)) {
             registerEventCallback(callbackContext);
         } else if ("stopListener".equals(action)) {
@@ -137,71 +137,111 @@ public class CordovaInbeaconManager extends CordovaPlugin {
 
     //////////////// INBEACON SDK METHODS ////////////////////////////////////
 
-    private void initialize(JSONObject kwargs, CallbackContext callbackContext) throws JSONException {
-        if (InbeaconManager.getSharedInstance() != null) {
-            callbackContext.error("InBeaconManager is already initialized");
-            return;
-        }
-        String clientId = kwargs.getString("clientId");
-        String clientSecret = kwargs.getString("clientSecret");
-        Context context = cordova.getActivity().getApplicationContext();
+    private void initialize(final JSONObject kwargs, final CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                if (InbeaconManager.getSharedInstance() != null) {
+                    callbackContext.error("InBeaconManager is already initialized");
+                    return;
+                }
 
-        initInbeaconManager(context, clientId, clientSecret);
-        initEventListener();
+                String clientId;
+                String clientSecret;
+                try {
+                    clientId     = kwargs.getString("clientId");
+                    clientSecret = kwargs.getString("clientSecret");
+                } catch (JSONException e) {
+                    callbackContext.error("Invalid clientId and/or clientSecret");
+                    return;
+                }
+                if (clientId == null || clientSecret == null) {
+                    callbackContext.error("Invalid clientId and/or clientSecret");
+                    return;
+                }
 
-        callbackContext.success();
+                Context context = cordova.getActivity().getApplicationContext();
+                initInbeaconManager(context, clientId, clientSecret);
+                initEventListener();
+
+                callbackContext.success();
+            }
+        });
     }
 
-    private void attachUser(JSONObject kwargs, CallbackContext callbackContext) throws JSONException {
+    private void attachUser(final JSONObject kwargs, final CallbackContext callbackContext) {
         // kwargs keys can be:
         // name, email, customerid, address, gender, zip, city, country,  birth, phone_mobile,
         // phone_home, phone_work, social_facebook_id, social_twitter_id, social_linkedin_id
-        HashMap<String, String> user = new HashMap<String, String>();
-        for (Iterator<String> iter = kwargs.keys(); iter.hasNext();) {
-            String key = iter.next();
-            user.put(key, kwargs.getString(key));
-        }
+        cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                HashMap<String, String> user = new HashMap<String, String>();
+                for (Iterator<String> iter = kwargs.keys(); iter.hasNext(); ) {
+                    String key = iter.next();
+                    try {
+                        user.put(key, kwargs.getString(key));
+                    } catch (JSONException e) {
+                        callbackContext.error("Invalid user info: " + e.toString());
+                    }
+                }
 
-        InbeaconManager.getSharedInstance().attachUser(user);
-        callbackContext.success();
-    }
-
-    private void detachUser(CallbackContext callbackContext) {
-        InbeaconManager.getSharedInstance().detachUser();
-        callbackContext.success();
-    }
-
-    private void refresh(CallbackContext callbackContext) {
-        InbeaconManager.getSharedInstance().refresh();
-        callbackContext.success();
-    }
-
-    private void verifyCapabilities(CallbackContext callbackContext) {
-        VerifiedCapability verifiedCaps = InbeaconManager.getSharedInstance().verifyCapabilities();
-
-        if (verifiedCaps != VerifiedCapability.CAP_OK) {
-            switch (verifiedCaps) {
-                case CAP_BLUETOOTH_DISABLED:
-                    callbackContext.error("This device has bluetooth turned off");
-                    break;
-                case CAP_BLUETOOTH_LE_NOT_AVAILABLE:
-                    callbackContext.error("This device does not support bluetooth LE needed for iBeacons");
-                    break;
-                case CAP_SDK_TOO_OLD:
-                    callbackContext.error("This device SDK is too old");
-                    break;
-                default:
-                    callbackContext.error("This device does not support inBeacon for an unknown reason");
-                    break;
+                InbeaconManager.getSharedInstance().attachUser(user);
+                callbackContext.success();
             }
-        } else {
-            callbackContext.success("This device supports iBeacons and the inBeacon SDK");
-        }
+        });
     }
 
-    private void askPermission(CallbackContext callbackContext) {
-        InbeaconManager.getSharedInstance().askPermissions(cordova.getActivity());
-        callbackContext.success();
+    private void detachUser(final CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                InbeaconManager.getSharedInstance().detachUser();
+                callbackContext.success();
+            }
+        });
+    }
+
+    private void refresh(final CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                InbeaconManager.getSharedInstance().refresh();
+                callbackContext.success();
+            }
+        });
+    }
+
+    private void verifyCapabilities(final CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                VerifiedCapability verifiedCaps = InbeaconManager.getSharedInstance().verifyCapabilities();
+
+                if (verifiedCaps != VerifiedCapability.CAP_OK) {
+                    switch (verifiedCaps) {
+                        case CAP_BLUETOOTH_DISABLED:
+                            callbackContext.error("This device has bluetooth turned off");
+                            break;
+                        case CAP_BLUETOOTH_LE_NOT_AVAILABLE:
+                            callbackContext.error("This device does not support bluetooth LE needed for iBeacons");
+                            break;
+                        case CAP_SDK_TOO_OLD:
+                            callbackContext.error("This device SDK is too old");
+                            break;
+                        default:
+                            callbackContext.error("This device does not support inBeacon for an unknown reason");
+                            break;
+                    }
+                } else {
+                    callbackContext.success("This device supports iBeacons and the inBeacon SDK");
+                }
+            }
+        });
+    }
+
+    private void askPermissions(final CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                InbeaconManager.getSharedInstance().askPermissions(cordova.getActivity());
+                callbackContext.success();
+            }
+        });
     }
 
     //////////////// CORDOVA FUNCTIONS ///////////////////////////////////////
