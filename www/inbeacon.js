@@ -159,28 +159,6 @@ InBeacon.prototype.detachUser = function(successCallback, errorCallback){
 };
 
 /**
- * Android only! Convenience method to ask COARSE_LOCATION permissions for SDSK 23,
- * needed for the use of beacons
- * (safe to call with SDK22 and lower, in this case it does nothing)
- *
- * @param successCallback
- * @param errorCallback
- */
-InBeacon.prototype.askPermissions = function(successCallback, errorCallback){
-    exec(successCallback, errorCallback || null, "InBeacon", "askPermissions", []);
-};
-
-/**
- * Android only! Check to see if the app has the rights to run location and notification services.
- *
- * @param successCallback
- * @param errorCallback
- */
-InBeacon.prototype.verifyCapabilities = function(successCallback, errorCallback){
-    exec(successCallback, errorCallback || null, "InBeacon", "verifyCapabilities", []);
-};
-
-/**
  * Check to see if the app has the rights to run location and notification services.
  *
  * @param successCallback
@@ -220,6 +198,17 @@ InBeacon.prototype.getBeaconState = function(successCallback, errorCallback){
     exec(successCallback, errorCallback || null, "InBeacon", "getBeaconState", []);
 };
 
+/**
+ * Android only! Convenience method to ask COARSE_LOCATION permissions for SDSK 23,
+ * needed for the use of beacons
+ * (Safe to call with SDK22 and lower, in this case it does nothing)
+ *
+ * @param successCallback
+ * @param errorCallback
+ */
+InBeacon.prototype.askPermissions = function(successCallback, errorCallback){
+    exec(successCallback, errorCallback || null, "InBeacon", "askPermissions", []);
+};
 
 var inBeacon = new InBeacon();
 

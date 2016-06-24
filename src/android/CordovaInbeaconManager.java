@@ -121,7 +121,7 @@ public class CordovaInbeaconManager extends CordovaPlugin {
             detachUser(callbackContext);
         } else if ("refresh".equals(action)) {
             refresh(callbackContext);
-        } else if ("verifyCapabilities".equals(action)) {
+        } else if ("checkCapabilitiesAndRights".equals(action)) {
             verifyCapabilities(callbackContext);
         } else if ("askPermissions".equals(action)) {
             askPermissions(callbackContext);
@@ -129,6 +129,15 @@ public class CordovaInbeaconManager extends CordovaPlugin {
             registerEventCallback(callbackContext);
         } else if ("stopListener".equals(action)) {
             unregisterEventCallback(callbackContext);
+        // iOS only methods
+        } else if ("setLogLevel".equals(action)) {
+            callbackContext.error("setLogLevel is only available on iOS");
+        } else if ("checkCapabilitiesAndRightsWithAlert".equals(action)) {
+            callbackContext.error("checkCapabilitiesAndRightsWithAlert is only available on iOS");
+        } else if ("getInRegions".equals(action)) {
+            callbackContext.error("getInRegions is only available on iOS");
+        } else if ("getBeaconState".equals(action)) {
+            callbackContext.error("getBeaconState is only available on iOS");
         } else {
             return false;
         }
