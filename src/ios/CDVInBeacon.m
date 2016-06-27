@@ -99,7 +99,8 @@ static NSString *const IO_OUT = @"o";
 	[self _handleCallSafely:^CDVPluginResult *(CDVInvokedUrlCommand * command) {
 		NSError* error;
 		if(![[inBeaconSdk getInstance] checkCapabilitiesAndRights:&error]) {
-			return [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:error.userInfo];
+			
+			return [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error.userInfo[@"description"]];
 		} else {
 			return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
 		}
