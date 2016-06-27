@@ -72,10 +72,15 @@ public class CordovaInbeaconManager extends CordovaPlugin {
         String clientId = appliInfo.metaData.getString("com.inbeacon.android.CLIENTID");
         String clientSecret = appliInfo.metaData.getString("com.inbeacon.android.SECRET");
 
-        if (clientId != null && clientSecret != null) {
-            initInbeaconManager(cordova.getActivity().getApplicationContext(), clientId, clientSecret);
-            initEventListener();
+        if (clientId == null     || clientId.equals("your-clientid") ||
+            clientSecret == null || clientSecret.equals("your-secret"))
+        {
+            Log.e(TAG, "Invalid clientId and/or clientSecret");
+            return;
         }
+
+        initInbeaconManager(cordova.getActivity().getApplicationContext(), clientId, clientSecret);
+        initEventListener();
     }
 
     /**
@@ -146,25 +151,27 @@ public class CordovaInbeaconManager extends CordovaPlugin {
 
     //////////////// INBEACON SDK METHODS ////////////////////////////////////
 
+    /**
+     * Create new InBeaconManager or couple existing one to new clientId + secret
+     * @param kwargs a JSONObject containing clientId and clientSecret
+     * @param callbackContext
+     */
     private void initialize(final JSONObject kwargs, final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                if (InbeaconManager.getSharedInstance() != null) {
-                    callbackContext.error("InBeaconManager is already initialized");
-                    return;
-                }
-
                 String clientId;
                 String clientSecret;
                 try {
                     clientId     = kwargs.getString("clientId");
-                    clientSecret = kwargs.getString("clientSecret");
+                    clientSecret = kwargs.getString("secret");
                 } catch (JSONException e) {
-                    callbackContext.error("Invalid clientId and/or clientSecret");
+                    callbackContext.error("Invalid client ID and/or Secret");
                     return;
                 }
-                if (clientId == null || clientSecret == null) {
-                    callbackContext.error("Invalid clientId and/or clientSecret");
+                if (clientId == null     || clientId.equals("your-clientid") ||
+                    clientSecret == null || clientSecret.equals("your-secret"))
+                {
+                    callbackContext.error("Invalid client ID and/or Secret");
                     return;
                 }
 
@@ -274,6 +281,7 @@ public class CordovaInbeaconManager extends CordovaPlugin {
     private void initInbeaconManager(Context context, String clientId, String clientSecret) {
         InbeaconManager.initialize(context, clientId, clientSecret);
         InbeaconManager.getSharedInstance().askPermissions(cordova.getActivity());
+        InbeaconManager.getSharedInstance().refresh();
     }
 
     private void initEventListener() {
@@ -333,7 +341,6 @@ public class CordovaInbeaconManager extends CordovaPlugin {
             }
             data.put("message", message);
 
-            eventObject.put("event", event);
             eventObject.put("name", event);
             eventObject.put("data", data);
 
