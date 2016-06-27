@@ -51,10 +51,16 @@ This plugin enables the InBeacon API for Cordova based apps on iOS and Android.
 
 ##### API calls
 
- * setLoglevel
+ * setLogLevel
  * checkCapabilitiesAndRightsWithAlert
  * getInRegions
  * getBeaconState
+
+#### Feature exclusive to Android
+
+##### API call
+
+ * askPermissions
 
 ### Installation
 
@@ -85,12 +91,12 @@ var userInfo = {
 
 cordova.plugins.inBeacon.initialize(userInfo, function () {
         console.log('Succesfully initialized inBeacon API');
-    }, function () {
-        console.error('inBeacon initialization failed');
+    }, function (error) {
+        console.error('inBeacon initialization failed ' + error);
     });
 ```
 
-> Note: You can skip this step when this plugins has been installed by the second method!
+> Note: You can skip this step when this plugins has been installed with clientId and secret in advance!
 
 #### refresh
 
