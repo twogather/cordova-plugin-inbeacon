@@ -56,7 +56,7 @@ function handlers(){
 
 /**
  * Event handlers for when callbacks get registered for InBeacon.
- * Keep track of how many handlers we have so we can start and stop the native battery listener
+ * Keep track of how many handlers we have so we can start and stop the native listener
  * appropriately (and hopefully save on battery life!).
  */
 InBeacon.onHasSubscribersChange = function() {
