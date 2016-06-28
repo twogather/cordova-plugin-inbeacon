@@ -22,8 +22,8 @@
     </js-module>
 
     <platform name="ios">
-        <preference name="INBEACON_CLIENTID" default="inbclientid" />
-        <preference name="INBEACON_SECRET" default="inbsecret" />
+        <preference name="INBEACON_CLIENTID" default="your-clientid" />
+        <preference name="INBEACON_SECRET" default="your-secret" />
       
         <info>
              In order to run this plugin, you need to obtain your clientId and secret from InBeacon.
@@ -67,8 +67,8 @@
 
     <platform name="android">
 
-      <preference name="INBEACON_CLIENTID" />
-      <preference name="INBEACON_SECRET" />
+      <preference name="INBEACON_CLIENTID" default="your-clientid" />
+      <preference name="INBEACON_SECRET" default="your-secret" />
 
       <config-file target="res/xml/config.xml" parent="/*">
         <feature name="InBeacon" >

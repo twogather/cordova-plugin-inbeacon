@@ -68,7 +68,7 @@
     NSString *clientId = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"inBeacon API clientId"];
     NSString *secret = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"inBeacon API secret"];
     
-    if (clientId != nil && secret != nil && ![clientId  isEqual: @"inbclientid"] && ![secret  isEqual: @"inbsecret"]) {
+    if (clientId != nil && secret != nil && ![clientId  isEqual: @"your-clientid"] && ![secret  isEqual: @"your-secret"]) {
         inBeaconSdk *inBeacon = [inBeaconSdk inbeaconWithClientID: clientId andClientSecret: secret];
         [inBeacon refresh];
     }
