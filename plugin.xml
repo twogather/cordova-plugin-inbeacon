@@ -73,6 +73,7 @@
       <config-file target="res/xml/config.xml" parent="/*">
         <feature name="InBeacon" >
           <param name="android-package" value="com.inbeacon.cordova.CordovaInbeaconManager"/>
+          <param name="onload" value="true"/>
         </feature>
       </config-file>
 
@@ -84,6 +85,7 @@
       </config-file>
 
       <config-file target="AndroidManifest.xml" parent="/manifest/application">
+        <receiver android:name="com.inbeacon.cordova.CordovaInbeaconReceiver" />
         <meta-data
           android:name="com.inbeacon.android.CLIENTID"
           android:value="$INBEACON_CLIENTID" />
@@ -93,6 +95,7 @@
       </config-file>
 
       <source-file src="src/android/CordovaInbeaconManager.java" target-dir="src/com/inbeacon/cordova" />
+      <source-file src="src/android/CordovaInbeaconReceiver.java" target-dir="src/com/inbeacon/cordova" />
       <framework src="src/android/inbeacon.gradle" custom="true" type="gradleReference"/>
     </platform>
 

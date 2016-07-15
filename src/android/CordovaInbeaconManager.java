@@ -27,6 +27,8 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -50,12 +52,12 @@ public class CordovaInbeaconManager extends CordovaPlugin {
     public static final String TAG = "cordova-plugin-inbeacon";
     private BroadcastReceiver broadcastReceiver;
     private CallbackContext eventCallbackContext;
+    private AlarmManager alarmManager;
 
     /**
      * Constructor
      */
     public CordovaInbeaconManager() {
-        broadcastReceiver = null;
     }
 
     /**
@@ -81,6 +83,7 @@ public class CordovaInbeaconManager extends CordovaPlugin {
 
         initInbeaconManager(cordova.getActivity().getApplicationContext(), clientId, clientSecret);
         initEventListener();
+        initHeartBeat();
     }
 
     /**
@@ -375,4 +378,28 @@ public class CordovaInbeaconManager extends CordovaPlugin {
         }
     }
 
+    /**
+     * Heartbeat is used to restart the inBeaconManager in case the application has been closed
+     */
+    private void initHeartBeat() {
+        alarmManager = (AlarmManager) cordova.getActivity().getSystemService(Context.ALARM_SERVICE);
+
+        Intent broadcastIntent = new Intent(cordova.getActivity(), CordovaInbeaconReceiver.class);
+        broadcastIntent.setAction(cordova.getActivity().getPackageName() + ".REVIVE");
+        PendingIntent reviveIntent = PendingIntent.getBroadcast(cordova.getActivity(), 0 , broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        long triggerAtMillis = 60 * 1000;
+        long intervalMillis = 60 * 1000;
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, intervalMillis, reviveIntent);
+    }
+
+
+    public static void wakeUp(Context context) {
+        // TODO wakeUp; Restore state from storage (id, secret, attachedUser) Use SharedPreferences?
+        String clientId = "your-clientid";
+        String clientSecret = "your-secret";
+        InbeaconManager.initialize(context, clientId, clientSecret);
+        InbeaconManager.getSharedInstance().refresh();
+        Log.i(TAG, "CordovaInbeaconManager woke up!");
+    }
 }
