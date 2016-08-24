@@ -11,9 +11,9 @@
     <repo>https://github.com/inbeacon/cordova-plugin-inbeacon.git</repo>
 
     <engines>
-        <engine name="cordova-android" version=">=4"/>
+        <engine name="cordova-android" version=">=3.6.4"/>
         <engine name="cordova-plugman" version=">=4.2.0"/><!-- needed for gradleReference support -->
-        <engine name="cordova-ios" version=">=3.9.0"/>
+        <engine name="cordova-ios" version=">=3.6.3"/>
     </engines>
 
     <!-- Plugin source code: Core -->
