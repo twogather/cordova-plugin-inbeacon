@@ -62,24 +62,7 @@ public class CordovaInbeaconManager extends CordovaPlugin {
      *  Initialize inBeaconManager if 'clientId' and 'secret' plugin parameters are set.
      */
     public void pluginInitialize() {
-        Activity activity = cordova.getActivity();
-        ApplicationInfo appliInfo = null;
-        try {
-            appliInfo = activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, e.getMessage(), e);
-        }
-        String clientId = appliInfo.metaData.getString("com.inbeacon.android.CLIENTID");
-        String clientSecret = appliInfo.metaData.getString("com.inbeacon.android.SECRET");
-
-        if (clientId == null     || clientId.equals("your-clientid") ||
-            clientSecret == null || clientSecret.equals("your-secret"))
-        {
-            Log.e(TAG, "Invalid clientId and/or clientSecret");
-            return;
-        }
-
-        initInbeaconManager(cordova.getActivity().getApplicationContext(), clientId, clientSecret);
+        initInbeaconManager();
         initEventListener();
     }
 
@@ -88,7 +71,12 @@ public class CordovaInbeaconManager extends CordovaPlugin {
      */
     public void onDestroy() {
         if (broadcastReceiver != null) {
-            cordova.getActivity().unregisterReceiver(broadcastReceiver);
+        	// unRegister our receiver that was registered on localbroadcastmanager
+            // wrong: cordova.getActivity().unregisterReceiver(broadcastReceiver);
+            LocalBroadcastManager
+                    .getInstance(cordova.getActivity().getApplicationContext())
+                    .unregisterReceiver(broadcastReceiver);
+
             broadcastReceiver = null;
         }
 
@@ -159,26 +147,7 @@ public class CordovaInbeaconManager extends CordovaPlugin {
     private void initialize(final JSONObject kwargs, final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                String clientId;
-                String clientSecret;
-                try {
-                    clientId     = kwargs.getString("clientId");
-                    clientSecret = kwargs.getString("secret");
-                } catch (JSONException e) {
-                    callbackContext.error("Invalid client ID and/or Secret");
-                    return;
-                }
-                if (clientId == null     || clientId.equals("your-clientid") ||
-                    clientSecret == null || clientSecret.equals("your-secret"))
-                {
-                    callbackContext.error("Invalid client ID and/or Secret");
-                    return;
-                }
-
-                Context context = cordova.getActivity().getApplicationContext();
-                initInbeaconManager(context, clientId, clientSecret);
-                initEventListener();
-
+				// obsolete.. does nothing
                 callbackContext.success();
             }
         });
@@ -278,8 +247,9 @@ public class CordovaInbeaconManager extends CordovaPlugin {
         callbackContext.success();
     }
 
-    private void initInbeaconManager(Context context, String clientId, String clientSecret) {
-        InbeaconManager.initialize(context, clientId, clientSecret);
+    private void initInbeaconManager() {
+        // now done in CordovaInbeaconApplication // InbeaconManager.initialize(context, clientId, clientSecret);
+        // just ask permissions and refresh
         InbeaconManager.getSharedInstance().askPermissions(cordova.getActivity());
         InbeaconManager.getSharedInstance().refresh();
     }

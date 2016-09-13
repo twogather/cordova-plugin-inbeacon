@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin id="cordova-plugin-inbeacon"
-        version="1.1.0"
+        version="1.1.1"
         xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -22,12 +22,12 @@
     </js-module>
 
     <platform name="ios">
-        <preference name="INBEACON_CLIENTID" default="your-clientid" />
-        <preference name="INBEACON_SECRET" default="your-secret" />
-      
+        <preference name="INBEACON_CLIENTID" default="your-clientid"/>
+        <preference name="INBEACON_SECRET" default="your-secret"/>
+
         <info>
-             In order to run this plugin, you need to obtain your clientId and secret from InBeacon.
-             Visit to https://console.inbeacon.nl
+            In order to run this plugin, you need to obtain your clientId and secret from InBeacon.
+            Visit to https://console.inbeacon.nl
         </info>
 
         <config-file parent="/*" target="config.xml">
@@ -36,11 +36,11 @@
                 <param name="onload" value="true"/>
             </feature>
         </config-file>
-         
-         <config-file target="*-Info.plist" parent="inBeacon API clientId">
+
+        <config-file target="*-Info.plist" parent="inBeacon API clientId">
             <string>$INBEACON_CLIENTID</string>
         </config-file>
-        
+
         <config-file target="*-Info.plist" parent="inBeacon API secret">
             <string>$INBEACON_SECRET</string>
         </config-file>
@@ -59,41 +59,46 @@
         <header-file src="src/ios/AppDelegate+CDVInBeacon.h"/>
         <source-file src="src/ios/AppDelegate+CDVInBeacon.m"/>
 
-        <framework src="CoreBluetooth.framework" />
-        <framework src="CoreLocation.framework" />
-        <framework src="libs/ios/inBeaconSdk.framework" custom="true" />
+        <framework src="CoreBluetooth.framework"/>
+        <framework src="CoreLocation.framework"/>
+        <framework src="libs/ios/inBeaconSdk.framework" custom="true"/>
 
     </platform>
 
     <platform name="android">
 
-      <preference name="INBEACON_CLIENTID" default="your-clientid" />
-      <preference name="INBEACON_SECRET" default="your-secret" />
+        <preference name="INBEACON_CLIENTID" default="your-clientid"/>
+        <preference name="INBEACON_SECRET" default="your-secret"/>
 
-      <config-file target="res/xml/config.xml" parent="/*">
-        <feature name="InBeacon" >
-          <param name="android-package" value="com.inbeacon.cordova.CordovaInbeaconManager"/>
-        </feature>
-      </config-file>
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="InBeacon">
+                <param name="android-package" value="com.inbeacon.cordova.CordovaInbeaconManager"/>
+            </feature>
+        </config-file>
 
-      <config-file target="AndroidManifest.xml" parent="/manifest">
-        <uses-permission android:name="android.permission.BLUETOOTH" />
-        <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-        <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-        <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-      </config-file>
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.BLUETOOTH"/>
+            <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+            <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+        </config-file>
 
-      <config-file target="AndroidManifest.xml" parent="/manifest/application">
-        <meta-data
-          android:name="com.inbeacon.android.CLIENTID"
-          android:value="$INBEACON_CLIENTID" />
-        <meta-data
-          android:name="com.inbeacon.android.SECRET"
-          android:value="$INBEACON_SECRET" />
-      </config-file>
+        <edit-config file="AndroidManifest.xml" target="/manifest/application" mode="merge">
+            <application android:name="com.inbeacon.cordova.CordovaInbeaconApplication"/>
+        </edit-config>
 
-      <source-file src="src/android/CordovaInbeaconManager.java" target-dir="src/com/inbeacon/cordova" />
-      <framework src="src/android/inbeacon.gradle" custom="true" type="gradleReference"/>
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <meta-data
+                    android:name="com.inbeacon.android.CLIENTID"
+                    android:value="$INBEACON_CLIENTID"/>
+            <meta-data
+                    android:name="com.inbeacon.android.SECRET"
+                    android:value="$INBEACON_SECRET"/>
+        </config-file>
+
+        <source-file src="src/android/CordovaInbeaconManager.java" target-dir="src/com/inbeacon/cordova"/>
+        <source-file src="src/android/CordovaInbeaconApplication.java" target-dir="src/com/inbeacon/cordova"/>
+        <framework src="src/android/inbeacon.gradle" custom="true" type="gradleReference"/>
     </platform>
 
 </plugin>

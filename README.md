@@ -62,41 +62,28 @@ This plugin enables the InBeacon API for Cordova based apps on iOS and Android.
 
  * askPermissions
 
-### Installation
+
+#### Installing with InBeacon clientId and secret
+
+Make sure you have your inbeacon client-id and secret ready, you can supply these when installing the plugin
 
 ```
-cordova plugin add https://github.com/twogather/cordova-plugin-inbeacon.git
+cordova plugin add https://github.com/inbeacon/cordova-plugin-inbeacon.git --variable INBEACON_CLIENTID="your-clientid" --variable INBEACON_SECRET="your-secret"
 ```
 
-#### Installing with InBeacon clientId and secret in advance. 
-
-Using this method you don't have to initialize the InBeacon SDK, it will be done automatically when your app starts.
-
+You can also enter the variables in the fetch.json file in the plugins directory later:
 ```
-cordova plugin add https://github.com/twogather/cordova-plugin-inbeacon.git --variable INBEACON_CLIENTID="your-clientid" --variable INBEACON_SECRET="your-secret"
+        "variables": {
+            "INBEACON_CLIENTID": "your client-id",
+            "INBEACON_SECRET": "your client-secret"
+        }
 ```
-
 
 ### Usage
 
 #### initialize
 
-To enable the features of the InBeacon SDK you need to initialize first.
-
-```
-var userInfo = {
-    clientId : 'clientId obtained from InBeacon',
-    secret   : 'secret obtained from InBeacon'
-};
-
-cordova.plugins.inBeacon.initialize(userInfo, function () {
-        console.log('Succesfully initialized inBeacon API');
-    }, function (error) {
-        console.error('inBeacon initialization failed ' + error);
-    });
-```
-
-> Note: You can skip this step when this plugins has been installed with clientId and secret in advance!
+The sdk is automatically initialized when the plugin is installed with the correct client-id and client-secret.
 
 #### refresh
 
@@ -137,3 +124,16 @@ function handleEnterRegion(event){
 }
 ```
 
+#### Minimal application
+
+For the most simple implementation, in index.js just do a refresh in onDeviceReady of your app object, like this:
+```
+onDeviceReady: function() {
+	app.receivedEvent('deviceready');
+	cordova.plugins.inBeacon.refresh(function(){
+		console.log('refresh done!');
+	}, function () {
+		console.error('refresh failed');
+	});
+},
+```
